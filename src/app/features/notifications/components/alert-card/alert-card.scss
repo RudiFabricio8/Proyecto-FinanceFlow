@@ -1,0 +1,114 @@
+// src/app/features/notifications/components/alert-card/alert-card.scss
+
+.alert-card {
+  background: white;
+  padding: 1.25rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid;
+  animation: fadeIn 0.5s ease-out;
+
+  &.border-urgent {
+    border-color: rgba(239, 68, 68, 0.3);
+  }
+
+  &.border-action {
+    border-color: rgba(251, 191, 36, 0.3);
+  }
+
+  &.border-info {
+    border-color: rgba(59, 130, 246, 0.3);
+  }
+
+  &.border-reminder {
+    border-color: rgba(156, 163, 175, 0.3);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.alert-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.alert-title {
+  font-size: 1rem;
+  font-weight: 600;
+
+  &.text-urgent {
+    color: #b91c1c;
+  }
+
+  &.text-action {
+    color: #c2410c;
+  }
+
+  &.text-info {
+    color: #1e40af;
+  }
+
+  &.text-reminder {
+    color: #4b5563;
+  }
+}
+
+.alert-timestamp {
+  font-size: 0.875rem;
+  color: rgba(69, 70, 65, 0.7);
+}
+
+.alert-message {
+  font-size: 0.875rem;
+  color: rgba(69, 70, 65, 0.8);
+  margin-bottom: 1rem;
+}
+
+.alert-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.btn-dismiss {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #565449;
+  border: 1px solid rgba(86, 84, 73, 0.5);
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: rgba(86, 84, 73, 0.1);
+  }
+}
+
+.btn-action {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: white;
+  background-color: #565449;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: rgba(86, 84, 73, 0.9);
+  }
+}
