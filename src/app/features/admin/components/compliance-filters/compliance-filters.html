@@ -1,0 +1,20 @@
+<!-- src/app/features/admin/components/compliance-filters/compliance-filters.html -->
+<div class="filters-container">
+  <input 
+    class="filter-input" 
+    type="text" 
+    placeholder="Filtrar por período..."
+    [(ngModel)]="filterText"
+    (input)="onFilterTextChange()"
+  />
+  
+  <button class="filter-button" (click)="onFilter()">
+    <span class="material-symbols-outlined">filter_alt</span>
+    Filtrar
+  </button>
+  
+  <button class="export-button" (click)="onExport()">
+    <span class="material-symbols-outlined">download</span>
+    Exportar
+  </button>
+</div>

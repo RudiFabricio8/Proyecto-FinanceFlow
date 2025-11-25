@@ -1,0 +1,56 @@
+// src/app/features/admin/components/compliance-filters/compliance-filters.scss
+
+.filters-container {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.filter-input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+
+  &:focus {
+    outline: none;
+    border-color: #565449;
+    box-shadow: 0 0 0 2px rgba(86, 84, 73, 0.2);
+  }
+}
+
+.filter-button,
+.export-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  border: none;
+
+  .material-symbols-outlined {
+    font-size: 1rem;
+  }
+}
+
+.filter-button {
+  background-color: rgba(86, 84, 73, 0.1);
+  color: #565449;
+
+  &:hover {
+    background-color: rgba(86, 84, 73, 0.2);
+  }
+}
+
+.export-button {
+  background-color: #565449;
+  color: white;
+
+  &:hover {
+    background-color: rgba(86, 84, 73, 0.9);
+  }
+}

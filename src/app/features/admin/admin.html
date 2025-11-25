@@ -1,0 +1,29 @@
+<!-- src/app/features/admin/admin.html -->
+<div class="admin-container">
+  <header class="admin-header">
+    <h1 class="admin-title">Administración y Configuración</h1>
+    <p class="admin-description">Auditoría y configuración de estados de cumplimiento de nóminas.</p>
+  </header>
+
+  <div class="admin-content">
+    <h2 class="content-title">Auditoría de Cumplimiento de Nóminas</h2>
+    
+    <div class="content-grid">
+      <div class="sidebar-section">
+        <app-period-selector
+          [periods]="periods"
+          (periodSelected)="onPeriodSelected($event)">
+        </app-period-selector>
+      </div>
+
+      <div class="main-section">
+        <app-compliance-table
+          [records]="dailyRecords"
+          [selectedPeriod]="selectedPeriod.month + ' ' + selectedPeriod.year"
+          (statusChange)="onStatusChange($event)"
+          (export)="onExport()">
+        </app-compliance-table>
+      </div>
+    </div>
+  </div>
+</div> 
