@@ -1,0 +1,59 @@
+// src/app/features/admin/components/compliance-row/compliance-row.scss
+
+.table-cell {
+  padding: 0.75rem 1rem;
+  color: rgba(69, 70, 65, 0.8);
+  font-size: 0.875rem;
+  vertical-align: middle;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  gap: 0.25rem;
+  white-space: nowrap;
+
+  .material-symbols-outlined {
+    font-size: 0.875rem;
+  }
+
+  &.status-approved {
+    background-color: rgba(25, 64, 7, 0.2);
+    color: #194007;
+  }
+
+  &.status-processed {
+    background-color: rgba(59, 130, 246, 0.2);
+    color: #1e40af;
+  }
+
+  &.status-draft {
+    background-color: rgba(245, 158, 11, 0.2);
+    color: #b45309;
+  }
+
+  &.status-cancelled {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: #b91c1c;
+  }
+}
+
+.status-select {
+  padding: 0.375rem 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  width: 100%;
+  max-width: 150px;
+
+  &:focus {
+    outline: none;
+    border-color: #565449;
+    box-shadow: 0 0 0 2px rgba(86, 84, 73, 0.2);
+  }
+}
