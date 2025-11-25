@@ -1,0 +1,73 @@
+// src/app/features/admin/components/compliance-table/compliance-table.scss
+
+.table-container {
+  background-color: #f9fafb;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  height: 600px;
+  overflow-y: auto;
+}
+
+.table-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #194007;
+  margin-bottom: 1rem;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+}
+
+.compliance-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  min-width: 800px;
+
+  thead {
+    background-color: #f3f4f6;
+  }
+
+  tbody {
+    background: white;
+    
+    tr {
+      border-bottom: 1px solid #e5e7eb;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.02);
+      }
+    }
+  }
+}
+
+.table-header {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #194007;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+  vertical-align: middle;
+
+  &:hover {
+    background-color: #e5e7eb;
+  }
+
+  .material-symbols-outlined {
+    font-size: 0.75rem;
+    vertical-align: middle;
+    margin-left: 0.25rem;
+  }
+}

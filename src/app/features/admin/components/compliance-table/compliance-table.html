@@ -1,0 +1,51 @@
+<!-- src/app/features/admin/components/compliance-table/compliance-table.html -->
+<div class="table-container">
+  <h3 class="table-title">Estado de Períodos de Nómina</h3>
+  
+  <app-compliance-filters
+    (filter)="onFilter($event)"
+    (export)="onExport()">
+  </app-compliance-filters>
+
+  <div class="table-wrapper">
+    <table class="compliance-table">
+      <colgroup>
+        <col style="width: 150px;">
+        <col style="width: 180px;">
+        <col style="width: 220px;">
+        <col style="width: 200px;">
+        <col style="width: auto;">
+      </colgroup>
+      <thead>
+        <tr>
+          <th class="table-header" (click)="onSort('date')">
+            PERÍODO
+            <span class="material-symbols-outlined">unfold_more</span>
+          </th>
+          <th class="table-header" (click)="onSort('status')">
+            ESTADO
+            <span class="material-symbols-outlined">unfold_more</span>
+          </th>
+          <th class="table-header" (click)="onSort('lastModified')">
+            ÚLTIMA MODIFICACIÓN
+            <span class="material-symbols-outlined">unfold_more</span>
+          </th>
+          <th class="table-header" (click)="onSort('complianceScore')">
+            PUNTUACIÓN CUMPLIMIENTO
+            <span class="material-symbols-outlined">unfold_more</span>
+          </th>
+          <th class="table-header">
+            ACCIONES
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr app-compliance-row
+          *ngFor="let record of filteredRecords"
+          [record]="record"
+          (statusChange)="onStatusChange($event)">
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
