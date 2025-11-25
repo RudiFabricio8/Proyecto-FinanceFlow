@@ -1,0 +1,18 @@
+// src/app/features/admin/components/period-selector/period-selector.scss
+
+.period-selector {
+  width: 100%;
+}
+
+.selector-title {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #194007;
+  margin-bottom: 1rem;
+}
+
+.periods-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
