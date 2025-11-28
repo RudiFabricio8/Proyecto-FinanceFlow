@@ -16,7 +16,6 @@ fun Route.transactionRoutes() {
     
     route("/transactions") {
         authenticate {
-            // Create a new transaction
             post {
                 val userId = call.principal<UserIdPrincipal>()?.name?.let { UUID.fromString(it) }
                     ?: throw IllegalStateException("User ID not found in principal")
@@ -26,7 +25,6 @@ fun Route.transactionRoutes() {
                 call.respond(HttpStatusCode.Created, transaction)
             }
             
-            // Get all transactions for current user with filters
             get {
                 val userId = call.principal<UserIdPrincipal>()?.name?.let { UUID.fromString(it) }
                     ?: throw IllegalStateException("User ID not found in principal")
@@ -53,7 +51,6 @@ fun Route.transactionRoutes() {
                 call.respond(HttpStatusCode.OK, transactions)
             }
             
-            // Get transaction summary
             get("/summary") {
                 val userId = call.principal<UserIdPrincipal>()?.name?.let { UUID.fromString(it) }
                     ?: throw IllegalStateException("User ID not found in principal")
@@ -70,7 +67,6 @@ fun Route.transactionRoutes() {
                 call.respond(HttpStatusCode.OK, summary)
             }
             
-            // Get a specific transaction
             get("/{id}") {
                 val userId = call.principal<UserIdPrincipal>()?.name?.let { UUID.fromString(it) }
                     ?: throw IllegalStateException("User ID not found in principal")
@@ -82,7 +78,6 @@ fun Route.transactionRoutes() {
                 call.respond(HttpStatusCode.OK, transaction)
             }
             
-            // Update a transaction
             put("/{id}") {
                 val userId = call.principal<UserIdPrincipal>()?.name?.let { UUID.fromString(it) }
                     ?: throw IllegalStateException("User ID not found in principal")
@@ -95,7 +90,6 @@ fun Route.transactionRoutes() {
                 call.respond(HttpStatusCode.OK, updated)
             }
             
-            // Delete a transaction
             delete("/{id}") {
                 val userId = call.principal<UserIdPrincipal>()?.name?.let { UUID.fromString(it) }
                     ?: throw IllegalStateException("User ID not found in principal")

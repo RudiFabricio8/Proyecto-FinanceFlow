@@ -16,7 +16,6 @@ fun Route.userRoutes(
     userService: UserService = application.userService()
 ) {
     route("/users") {
-        // Get current user's profile (requires authentication)
         authenticate {
             get("/me") {
                 val userId = call.principal<UserIdPrincipal>()?.name?.let { UUID.fromString(it) }
@@ -26,7 +25,6 @@ fun Route.userRoutes(
                 call.respond(HttpStatusCode.OK, userProfile)
             }
             
-            // Update current user's profile
             put("/me") {
                 val userId = call.principal<UserIdPrincipal>()?.name?.let { UUID.fromString(it) }
                     ?: throw IllegalStateException("User ID not found in principal")
@@ -36,15 +34,12 @@ fun Route.userRoutes(
                 call.respond(HttpStatusCode.OK, updatedUser)
             }
             
-            // Admin-only routes
             authenticate("admin") {
-                // Get all users (admin only)
                 get {
                     val users = userService.getAllUsers()
                     call.respond(HttpStatusCode.OK, users)
                 }
                 
-                // Get user by ID (admin only)
                 get("/{id}") {
                     val userId = call.parameters["id"]?.let { UUID.fromString(it) }
                         ?: throw IllegalArgumentException("Invalid user ID")
@@ -53,14 +48,12 @@ fun Route.userRoutes(
                     call.respond(HttpStatusCode.OK, user)
                 }
                 
-                // Create new user (admin only)
                 post {
                     val request = call.receive<UserCreateRequest>()
                     val newUser = userService.createUser(request)
                     call.respond(HttpStatusCode.Created, newUser)
                 }
                 
-                // Update user by ID (admin only)
                 put("/{id}") {
                     val userId = call.parameters["id"]?.let { UUID.fromString(it) }
                         ?: throw IllegalArgumentException("Invalid user ID")
@@ -70,7 +63,6 @@ fun Route.userRoutes(
                     call.respond(HttpStatusCode.OK, updatedUser)
                 }
                 
-                // Delete user by ID (admin only)
                 delete("/{id}") {
                     val userId = call.parameters["id"]?.let { UUID.fromString(it) }
                         ?: throw IllegalArgumentException("Invalid user ID")
@@ -83,7 +75,6 @@ fun Route.userRoutes(
     }
 }
 
-// Extension function to get UserService from Application
 fun Application.userService(): UserService {
     val userRepository = UserRepositoryImpl(DatabaseConfig.database)
     return UserService(userRepository)

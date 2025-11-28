@@ -19,11 +19,9 @@ class PayrollService(
     private val transactionService: TransactionService by inject()
     
     suspend fun createPayroll(request: PayrollCreateRequest, requestedBy: UUID): PayrollResponse {
-        // Verify requester is admin or the same user
         val requester = userRepository.findById(requestedBy) ?: throw NoSuchElementException("User not found")
         val isAdmin = requester.role == UserRole.ADMIN || requester.role == UserRole.ACCOUNTANT
         
-        // If not admin, can only create payroll for self
         if (!isAdmin && requestedBy != UUID.fromString(request.userId)) {
             throw SecurityException("Not authorized to create payroll for this user")
         }
@@ -31,12 +29,10 @@ class PayrollService(
         val userId = UUID.fromString(request.userId)
         val user = userRepository.findById(userId) ?: throw NoSuchElementException("User not found")
         
-        // Calculate net pay
         val totalDeductions = request.deductions.sumOf { it.amount }
         val totalBonuses = request.bonuses.sumOf { it.amount }
         val netPay = request.baseSalary + totalBonuses - totalDeductions
         
-        // Create payroll
         val payroll = Payroll(
             userId = userId,
             periodStart = request.periodStart,
@@ -56,7 +52,6 @@ class PayrollService(
         val payroll = payrollRepository.findById(payrollId)
             ?: throw NoSuchElementException("Payroll not found with ID: $payrollId")
         
-        // Verify requester is admin, accountant, or the payroll owner
         val requester = userRepository.findById(requestedBy) ?: throw NoSuchElementException("User not found")
         val isAdminOrAccountant = requester.role == UserRole.ADMIN || requester.role == UserRole.ACCOUNTANT
         
@@ -75,7 +70,6 @@ class PayrollService(
         val existing = payrollRepository.findById(payrollId)
             ?: throw NoSuchElementException("Payroll not found with ID: $payrollId")
         
-        // Verify requester is admin or accountant
         val requester = userRepository.findById(requestedBy) ?: throw NoSuchElementException("User not found")
         val isAdminOrAccountant = requester.role == UserRole.ADMIN || requester.role == UserRole.ACCOUNTANT
         
@@ -83,11 +77,9 @@ class PayrollService(
             throw SecurityException("Not authorized to update payrolls")
         }
         
-        // Update fields if provided
         val updatedDeductions = request.deductions?.map { it.toDomain() } ?: existing.deductions
         val updatedBonuses = request.bonuses?.map { it.toDomain() } ?: existing.bonuses
         
-        // Recalculate net pay if needed
         val totalDeductions = updatedDeductions.sumOf { it.amount }
         val totalBonuses = updatedBonuses.sumOf { it.amount }
         val netPay = existing.baseSalary + totalBonuses - totalDeductions
@@ -102,7 +94,6 @@ class PayrollService(
         
         val saved = payrollRepository.save(updated)
         
-        // If status changed to PAID, create a transaction
         if (saved.status == PayrollStatus.PAID && existing.status != PayrollStatus.PAID) {
             createPayrollTransaction(saved, "Payroll payment for period ${formatDate(saved.periodStart)} to ${formatDate(saved.periodEnd)}")
         }
@@ -114,7 +105,6 @@ class PayrollService(
         val existing = payrollRepository.findById(payrollId)
             ?: throw NoSuchElementException("Payroll not found with ID: $payrollId")
         
-        // Verify requester is admin or accountant
         val requester = userRepository.findById(requestedBy) ?: throw NoSuchElementException("User not found")
         val isAdminOrAccountant = requester.role == UserRole.ADMIN || requester.role == UserRole.ACCOUNTANT
         
@@ -134,7 +124,6 @@ class PayrollService(
         year: Int? = null,
         month: Int? = null
     ): PagedResponse<PayrollResponse> {
-        // Verify requester is admin, accountant, or the user themselves
         val requester = userRepository.findById(requestedBy) ?: throw NoSuchElementException("User not found")
         val isAdminOrAccountant = requester.role == UserRole.ADMIN || requester.role == UserRole.ACCOUNTANT
         
@@ -142,7 +131,6 @@ class PayrollService(
             throw SecurityException("Not authorized to view these payrolls")
         }
         
-        // Build filters
         val allPayrolls = payrollRepository.findByUserId(userId)
             .filter { payroll ->
                 status?.let { payroll.status == PayrollStatus.valueOf(it.uppercase()) } ?: true
@@ -161,7 +149,6 @@ class PayrollService(
             }
             .sortedByDescending { it.periodEnd }
         
-        // Apply pagination
         val totalItems = allPayrolls.size
         val totalPages = (totalItems + pageSize - 1) / pageSize
         val paginated = allPayrolls
@@ -183,8 +170,7 @@ class PayrollService(
         year: Int? = null,
         month: Int? = null
     ): PayrollSummary {
-        // Get all payrolls, filtered by user if specified
-        val payrolls = (userId?.let { payrollRepository.findByUserId(it) } 
+        val payrolls = (userId?.let { payrollRepository.findByUserId(it) }
             ?: payrollRepository.findAll())
             .filter { payroll ->
                 if (year != null) {

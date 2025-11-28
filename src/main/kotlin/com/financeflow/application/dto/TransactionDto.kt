@@ -11,7 +11,8 @@ data class TransactionCreateRequest(
     val type: String,
     val category: String,
     val description: String? = null,
-    val reference: String? = null
+    val reference: String? = null,
+    val date: Long? = null
 )
 
 @Serializable

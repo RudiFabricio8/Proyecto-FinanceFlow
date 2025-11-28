@@ -19,7 +19,6 @@ class TransactionService(
     private val userService: UserService by inject()
     
     suspend fun createTransaction(userId: UUID, request: TransactionCreateRequest): TransactionResponse {
-        // Validate user exists and is active
         userService.getUserById(userId)
         
         val transaction = Transaction(
@@ -59,7 +58,6 @@ class TransactionService(
         val existing = transactionRepository.findById(transactionId)
             ?: throw NoSuchElementException("Transaction not found with ID: $transactionId")
         
-        // Verify ownership
         if (existing.userId != userId) {
             throw SecurityException("Not authorized to update this transaction")
         }
@@ -79,7 +77,6 @@ class TransactionService(
         val existing = transactionRepository.findById(transactionId)
             ?: throw NoSuchElementException("Transaction not found with ID: $transactionId")
         
-        // Verify ownership
         if (existing.userId != userId) {
             throw SecurityException("Not authorized to delete this transaction")
         }
@@ -97,10 +94,8 @@ class TransactionService(
         endDate: Long? = null,
         category: String? = null
     ): PagedResponse<TransactionResponse> {
-        // Validate user exists
         userService.getUserById(userId)
         
-        // Build filters
         val transactions = transactionRepository.findByUserId(userId)
             .filter { transaction ->
                 type?.let { transaction.type == TransactionType.valueOf(it.uppercase()) } ?: true
@@ -119,7 +114,6 @@ class TransactionService(
             }
             .sortedByDescending { it.date }
         
-        // Apply pagination
         val totalItems = transactions.size
         val totalPages = (totalItems + pageSize - 1) / pageSize
         val paginated = transactions
@@ -141,7 +135,6 @@ class TransactionService(
         startDate: Long? = null,
         endDate: Long? = null
     ): TransactionSummary {
-        // Get all user transactions within date range
         val transactions = transactionRepository.findByUserId(userId)
             .filter { transaction ->
                 startDate?.let { transaction.date >= it } ?: true

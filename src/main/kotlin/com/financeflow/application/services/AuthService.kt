@@ -17,72 +17,58 @@ class AuthService(
 ) {
     
     suspend fun register(request: RegisterRequest): AuthResponse {
-        // Validate input
         require(request.email.isNotBlank()) { "Email is required" }
         require(request.password.length >= 8) { "Password must be at least 8 characters long" }
         require(request.fullName.isNotBlank()) { "Full name is required" }
         
-        // Check if user already exists
         if (userRepository.existsByEmail(request.email)) {
             throw IllegalArgumentException("Email already in use")
         }
         
-        // Create new user
         val user = User(
             email = request.email.lowercase(),
-            password = request.password, // Will be hashed in repository
+            password = request.password,
             fullName = request.fullName,
             role = UserRole.USER
         )
         
         val savedUser = userRepository.save(user)
         
-        // Generate tokens
         return generateAuthResponse(savedUser)
     }
     
     suspend fun login(request: LoginRequest): AuthResponse {
-        // Find user by email
         val user = userRepository.findByEmail(request.email.lowercase())
             ?: throw IllegalArgumentException("Invalid email or password")
         
-        // Verify password
         if (!BCrypt.checkpw(request.password, user.password)) {
             throw IllegalArgumentException("Invalid email or password")
         }
         
-        // Check if user is active
         if (!user.isActive) {
             throw IllegalStateException("Account is deactivated")
         }
         
-        // Generate tokens
         return generateAuthResponse(user)
     }
     
     suspend fun refreshToken(refreshToken: String): AuthResponse {
-        // Verify refresh token
         val decodedJWT = jwtConfig.validateToken(refreshToken)
             ?: throw IllegalArgumentException("Invalid refresh token")
         
-        // Check if token is a refresh token
         if (decodedJWT.subject != "Refresh") {
             throw IllegalArgumentException("Invalid token type")
         }
         
-        // Get user ID from token
         val userId = UUID.fromString(decodedJWT.getClaim("userId").asString())
         
-        // Find user
         val user = userRepository.findById(userId)
             ?: throw IllegalArgumentException("User not found")
         
-        // Check if user is active
         if (!user.isActive) {
             throw IllegalStateException("Account is deactivated")
         }
         
-        // Generate new tokens
         return generateAuthResponse(user)
     }
     
@@ -101,30 +87,24 @@ class AuthService(
     suspend fun changePassword(userId: UUID, currentPassword: String, newPassword: String) {
         require(newPassword.length >= 8) { "New password must be at least 8 characters long" }
         
-        // Find user
         val user = userRepository.findById(userId)
             ?: throw IllegalArgumentException("User not found")
         
-        // Verify current password
         if (!BCrypt.checkpw(currentPassword, user.password)) {
             throw IllegalArgumentException("Current password is incorrect")
         }
         
-        // Update password
         userRepository.updatePassword(userId, newPassword)
     }
     
     suspend fun deactivateAccount(userId: UUID, currentPassword: String) {
-        // Find user
         val user = userRepository.findById(userId)
             ?: throw IllegalArgumentException("User not found")
         
-        // Verify password
         if (!BCrypt.checkpw(currentPassword, user.password)) {
             throw IllegalArgumentException("Password is incorrect")
         }
         
-        // Deactivate account
         userRepository.deactivate(userId)
     }
 }

@@ -16,7 +16,6 @@ fun Route.payrollRoutes() {
     
     route("/payrolls") {
         authenticate {
-            // Create a new payroll (admin/accountant only)
             post {
                 val requestedBy = call.principal<UserIdPrincipal>()?.name?.let { UUID.fromString(it) }
                     ?: throw IllegalStateException("User ID not found in principal")
@@ -26,7 +25,6 @@ fun Route.payrollRoutes() {
                 call.respond(HttpStatusCode.Created, payroll)
             }
             
-            // Get all payrolls for current user or all (admin/accountant)
             get {
                 val requestedBy = call.principal<UserIdPrincipal>()?.name?.let { UUID.fromString(it) }
                     ?: throw IllegalStateException("User ID not found in principal")
@@ -38,15 +36,11 @@ fun Route.payrollRoutes() {
                 val year = call.request.queryParameters["year"]?.toIntOrNull()
                 val month = call.request.queryParameters["month"]?.toIntOrNull()
                 
-                // If userId is provided and requester is admin/accountant, get payrolls for that user
-                // Otherwise, get payrolls for the requester
                 val targetUserId = if (userId != null) {
-                    // Verify requester is admin/accountant if trying to access another user's payrolls
                     val requester = call.principal<UserIdPrincipal>()?.name?.let { UUID.fromString(it) }
                         ?: throw IllegalStateException("User ID not found in principal")
                     
                     if (userId != requester) {
-                        // Check if requester is admin/accountant
                         val isAdminOrAccountant = call.principal<UserIdPrincipal>()?.let { principal ->
                             principal.attributes[UserRole.ADMIN] == true || 
                             principal.attributes[UserRole.ACCOUNTANT] == true
@@ -74,7 +68,6 @@ fun Route.payrollRoutes() {
                 call.respond(HttpStatusCode.OK, payrolls)
             }
             
-            // Get payroll summary
             get("/summary") {
                 val requestedBy = call.principal<UserIdPrincipal>()?.name?.let { UUID.fromString(it) }
                     ?: throw IllegalStateException("User ID not found in principal")
@@ -83,8 +76,7 @@ fun Route.payrollRoutes() {
                 val year = call.request.queryParameters["year"]?.toIntOrNull()
                 val month = call.request.queryParameters["month"]?.toIntOrNull()
                 
-                // If userId is provided, verify requester is admin/accountant or the same user
-                userId?.let { 
+                userId?.let {
                     if (it != requestedBy) {
                         val isAdminOrAccountant = call.principal<UserIdPrincipal>()?.let { principal ->
                             principal.attributes[UserRole.ADMIN] == true || 
@@ -106,7 +98,6 @@ fun Route.payrollRoutes() {
                 call.respond(HttpStatusCode.OK, summary)
             }
             
-            // Get a specific payroll
             get("/{id}") {
                 val requestedBy = call.principal<UserIdPrincipal>()?.name?.let { UUID.fromString(it) }
                     ?: throw IllegalStateException("User ID not found in principal")
@@ -118,7 +109,6 @@ fun Route.payrollRoutes() {
                 call.respond(HttpStatusCode.OK, payroll)
             }
             
-            // Update a payroll (admin/accountant only)
             put("/{id}") {
                 val requestedBy = call.principal<UserIdPrincipal>()?.name?.let { UUID.fromString(it) }
                     ?: throw IllegalStateException("User ID not found in principal")
@@ -131,7 +121,6 @@ fun Route.payrollRoutes() {
                 call.respond(HttpStatusCode.OK, updated)
             }
             
-            // Delete a payroll (admin/accountant only)
             delete("/{id}") {
                 val requestedBy = call.principal<UserIdPrincipal>()?.name?.let { UUID.fromString(it) }
                     ?: throw IllegalStateException("User ID not found in principal")
