@@ -1,0 +1,18 @@
+<!-- src/app/features/notifications/components/alert-card/alert-card.html -->
+<div class="alert-card" [ngClass]="getBorderClass()">
+  <div class="alert-header">
+    <p class="alert-title" [ngClass]="getTitleClass()">{{ alert.title }}</p>
+    <span class="alert-timestamp">{{ alert.timestamp }}</span>
+  </div>
+  
+  <p class="alert-message">{{ alert.message }}</p>
+  
+  <div class="alert-actions">
+    <button class="btn-dismiss" (click)="onDismiss()">
+      Descartar
+    </button>
+    <button class="btn-action" (click)="onAction()">
+      {{ alert.primaryActionLabel }}
+    </button>
+  </div>
+</div>

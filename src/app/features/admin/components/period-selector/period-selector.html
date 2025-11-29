@@ -1,0 +1,11 @@
+<!-- src/app/features/admin/components/period-selector/period-selector.html -->
+<div class="period-selector">
+  <h3 class="selector-title">Períodos de Nómina</h3>
+  <nav class="periods-list">
+    <app-period-item
+      *ngFor="let period of periods"
+      [period]="period"
+      (selectPeriod)="onPeriodSelect($event)">
+    </app-period-item>
+  </nav>
+</div>

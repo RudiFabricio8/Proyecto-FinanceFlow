@@ -1,0 +1,10 @@
+<!-- src/app/features/admin/components/period-item/period-item.html -->
+<a 
+  class="period-item" 
+  [class.active]="period.isActive"
+  (click)="onSelect()">
+  <span class="material-symbols-outlined">
+    {{ period.isActive ? 'check_circle' : 'radio_button_unchecked' }}
+  </span>
+  <span>{{ period.month }} {{ period.year }}</span>
+</a>

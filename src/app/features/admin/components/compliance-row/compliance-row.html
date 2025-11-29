@@ -1,0 +1,20 @@
+<!-- src/app/features/admin/components/compliance-row/compliance-row.html -->
+<td class="table-cell">{{ record.date }}</td>
+<td class="table-cell">
+  <span class="status-badge" [ngClass]="getStatusConfig().class">
+    <span class="material-symbols-outlined">{{ getStatusConfig().icon }}</span>
+    {{ getStatusConfig().label }}
+  </span>
+</td>
+<td class="table-cell">{{ record.lastModified }}</td>
+<td class="table-cell">{{ record.complianceScore }}%</td>
+<td class="table-cell">
+  <select 
+    class="status-select" 
+    [value]="record.status"
+    (change)="onStatusChange($event)">
+    <option *ngFor="let status of statuses" [value]="status">
+      {{ getStatusLabel(status) }}
+    </option>
+  </select>
+</td>
