@@ -2,6 +2,8 @@ package com.financeflow.adapters.rest
 
 import com.financeflow.application.dto.*
 import com.financeflow.application.services.PayrollService
+import com.financeflow.domain.model.UserRole
+import com.financeflow.domain.repository.UserRepository
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -11,14 +13,25 @@ import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
 import java.util.*
 
+private fun ApplicationCall.requireUserId(): UUID {
+    return principal<UserIdPrincipal>()?.name?.let { UUID.fromString(it) }
+        ?: throw SecurityException("User not authenticated")
+}
+
+private suspend fun ApplicationCall.requireAdminOrAccountant(userRepository: UserRepository): Boolean {
+    val userId = requireUserId()
+    val user = userRepository.findById(userId) ?: throw SecurityException("User not found")
+    return user.role == UserRole.ADMIN || user.role == UserRole.ACCOUNTANT
+}
+
 fun Route.payrollRoutes() {
     val payrollService: PayrollService by inject()
     
     route("/payrolls") {
         authenticate {
             post {
-                val requestedBy = call.principal<UserIdPrincipal>()?.name?.let { UUID.fromString(it) }
-                    ?: throw IllegalStateException("User ID not found in principal")
+                val requestedBy = call.requireUserId()
+                val isAdminOrAccountant = call.requireAdminOrAccountant(userRepository)
                 
                 val request = call.receive<PayrollCreateRequest>()
                 val payroll = payrollService.createPayroll(request, requestedBy)
@@ -26,8 +39,8 @@ fun Route.payrollRoutes() {
             }
             
             get {
-                val requestedBy = call.principal<UserIdPrincipal>()?.name?.let { UUID.fromString(it) }
-                    ?: throw IllegalStateException("User ID not found in principal")
+                val requestedBy = call.requireUserId()
+                val isAdminOrAccountant = call.requireAdminOrAccountant(userRepository)
                 
                 val userId = call.request.queryParameters["userId"]?.let { UUID.fromString(it) }
                 val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
@@ -36,24 +49,12 @@ fun Route.payrollRoutes() {
                 val year = call.request.queryParameters["year"]?.toIntOrNull()
                 val month = call.request.queryParameters["month"]?.toIntOrNull()
                 
-                val targetUserId = if (userId != null) {
-                    val requester = call.principal<UserIdPrincipal>()?.name?.let { UUID.fromString(it) }
-                        ?: throw IllegalStateException("User ID not found in principal")
-                    
-                    if (userId != requester) {
-                        val isAdminOrAccountant = call.principal<UserIdPrincipal>()?.let { principal ->
-                            principal.attributes[UserRole.ADMIN] == true || 
-                            principal.attributes[UserRole.ACCOUNTANT] == true
-                        } ?: false
-                        
-                        if (!isAdminOrAccountant) {
-                            throw SecurityException("Not authorized to view these payrolls")
-                        }
+                val targetUserId = userId?.let { id ->
+                    if (id != requestedBy && !isAdminOrAccountant) {
+                        throw SecurityException("Not authorized to view these payrolls")
                     }
-                    userId
-                } else {
-                    requestedBy
-                }
+                    id
+                } ?: requestedBy
                 
                 val payrolls = payrollService.getUserPayrolls(
                     userId = targetUserId,
@@ -69,23 +70,16 @@ fun Route.payrollRoutes() {
             }
             
             get("/summary") {
-                val requestedBy = call.principal<UserIdPrincipal>()?.name?.let { UUID.fromString(it) }
-                    ?: throw IllegalStateException("User ID not found in principal")
+                val requestedBy = call.requireUserId()
+                val isAdminOrAccountant = call.requireAdminOrAccountant(userRepository)
                 
                 val userId = call.request.queryParameters["userId"]?.let { UUID.fromString(it) }
                 val year = call.request.queryParameters["year"]?.toIntOrNull()
                 val month = call.request.queryParameters["month"]?.toIntOrNull()
                 
-                userId?.let {
-                    if (it != requestedBy) {
-                        val isAdminOrAccountant = call.principal<UserIdPrincipal>()?.let { principal ->
-                            principal.attributes[UserRole.ADMIN] == true || 
-                            principal.attributes[UserRole.ACCOUNTANT] == true
-                        } ?: false
-                        
-                        if (!isAdminOrAccountant) {
-                            throw SecurityException("Not authorized to view this summary")
-                        }
+                userId?.let { id ->
+                    if (id != requestedBy && !isAdminOrAccountant) {
+                        throw SecurityException("Not authorized to view this summary")
                     }
                 }
                 
@@ -99,8 +93,8 @@ fun Route.payrollRoutes() {
             }
             
             get("/{id}") {
-                val requestedBy = call.principal<UserIdPrincipal>()?.name?.let { UUID.fromString(it) }
-                    ?: throw IllegalStateException("User ID not found in principal")
+                val requestedBy = call.requireUserId()
+                val userRepository: UserRepository by inject()
                 
                 val payrollId = call.parameters["id"]?.let { UUID.fromString(it) }
                     ?: throw IllegalArgumentException("Invalid payroll ID")
@@ -110,8 +104,9 @@ fun Route.payrollRoutes() {
             }
             
             put("/{id}") {
-                val requestedBy = call.principal<UserIdPrincipal>()?.name?.let { UUID.fromString(it) }
-                    ?: throw IllegalStateException("User ID not found in principal")
+                val requestedBy = call.requireUserId()
+                val userRepository: UserRepository by inject()
+                val isAdminOrAccountant = call.requireAdminOrAccountant(userRepository)
                 
                 val payrollId = call.parameters["id"]?.let { UUID.fromString(it) }
                     ?: throw IllegalArgumentException("Invalid payroll ID")
@@ -122,8 +117,13 @@ fun Route.payrollRoutes() {
             }
             
             delete("/{id}") {
-                val requestedBy = call.principal<UserIdPrincipal>()?.name?.let { UUID.fromString(it) }
-                    ?: throw IllegalStateException("User ID not found in principal")
+                val requestedBy = call.requireUserId()
+                val userRepository: UserRepository by inject()
+                val isAdminOrAccountant = call.requireAdminOrAccountant(userRepository)
+                
+                if (!isAdminOrAccountant) {
+                    throw SecurityException("Not authorized to delete payrolls")
+                }
                 
                 val payrollId = call.parameters["id"]?.let { UUID.fromString(it) }
                     ?: throw IllegalArgumentException("Invalid payroll ID")

@@ -10,13 +10,27 @@ import io.ktor.server.request.*
 import io.swagger.v3.oas.models.*
 import io.swagger.v3.oas.models.media.*
 import io.swagger.v3.oas.models.parameters.*
+import io.swagger.v3.oas.models.servers.Server
 import io.swagger.v3.oas.models.responses.*
 import io.swagger.v3.oas.models.security.SecurityRequirement
 import io.swagger.v3.oas.models.security.SecurityScheme
 import java.util.*
 
+import com.fasterxml.jackson.annotation.JsonProperty
+// Removed annotation Schema import as we'll use the model Schema instead
+
+/**
+ * OpenAPI documentation configuration for the FinanceFlow API.
+ * This object provides utilities for generating OpenAPI documentation.
+ */
 object OpenAPIDocumentation {
-    private val securityRequirement = SecurityRequirement().addList("jwt_auth")
+    /**
+     * Security requirement for JWT authentication.
+     * This is used to secure API endpoints that require authentication.
+     */
+    val securityRequirement = SecurityRequirement().addList("jwt_auth")
+    
+    private const val DEFAULT_ERROR_MESSAGE = "An unexpected error occurred"
     
     private val errorResponse: ApiResponse
         get() = ApiResponse()
@@ -148,27 +162,76 @@ object OpenAPIDocumentation {
         addSecurityItem(securityRequirement)
     }
     
+    /**
+     * Common error response schema.
+     */
+    @Schema(description = "Standard error response format")
+    data class ErrorResponse(
+        @field:Schema(description = "HTTP status code", example = "400")
+        val status: Int,
+        
+        @field:Schema(description = "Error message", example = "Invalid request parameters")
+        val message: String,
+        
+        @field:Schema(
+            description = "Additional error details",
+            nullable = true,
+            example = "{ \"field\": \"email\", \"error\": \"must be a well-formed email address\" }"
+        )
+        val details: Map<String, Any>? = null
+    )
+    
+    /**
+     * Adds common schemas to the OpenAPI components.
+     */
     fun Components.addSchemas() {
-        // Add common schemas here
+        // Error response schema
         addSchemas(
             "ErrorResponse",
             ObjectSchema()
-                .addProperties("status", IntegerSchema())
-                .addProperties("message", StringSchema())
-                .addProperties("details", ObjectSchema())
+                .addProperties(
+                    "status", 
+                    IntegerSchema()
+                        .description("HTTP status code")
+                        .example(400)
+                )
+                .addProperties(
+                    "message", 
+                    StringSchema()
+                        .description("Error message")
+                        .example("Invalid request parameters")
+                )
+                .addProperties(
+                    "details", 
+                    ObjectSchema()
+                        .description("Additional error details")
+                        .nullable(true)
+                )
+                .required(listOf("status", "message"))
         )
         
-        // Add other schemas as needed
+        // Pagination metadata schema
+        addSchemas(
+            "PaginationMetadata",
+            ObjectSchema()
+                .addProperties("page", IntegerSchema().description("Current page number").example(1))
+                .addProperties("pageSize", IntegerSchema().description("Number of items per page").example(20))
+                .addProperties("totalItems", IntegerSchema().description("Total number of items").example(100))
+                .addProperties("totalPages", IntegerSchema().description("Total number of pages").example(5))
+                .required(listOf("page", "pageSize", "totalItems", "totalPages"))
+        )
     }
     
-    // Helper function to create a schema reference
-    fun schemaRef(name: String) = Schema<Any>().`$ref`("#/components/schemas/$name")
+
+    fun schemaRef(name: String): io.swagger.v3.oas.models.media.Schema<Any> = 
+        io.swagger.v3.oas.models.media.Schema<Any>().`$ref`("#/components/schemas/$name")
     
-    // Helper function to create a response with a schema reference
+    
     fun responseWithSchema(
         description: String,
         schemaName: String,
-        isArray: Boolean = false
+        isArray: Boolean = false,
+        statusCode: String = "200"
     ): ApiResponse {
         val schema = if (isArray) {
             ArraySchema().items(schemaRef(schemaName))

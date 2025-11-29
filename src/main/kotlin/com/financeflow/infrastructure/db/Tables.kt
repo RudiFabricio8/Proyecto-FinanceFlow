@@ -1,11 +1,12 @@
 package com.financeflow.infrastructure.db
 
 import org.ktorm.schema.*
+import org.ktorm.schema.nullable
 import java.util.*
 
 object Users : Table<Nothing>("users") {
     val id = uuid("id").primaryKey()
-    val email = varchar("email").uniqueIndex()
+    val email = varchar("email").unique()
     val password = varchar("password")
     val fullName = varchar("full_name")
     val role = varchar("role")

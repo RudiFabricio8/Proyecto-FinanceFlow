@@ -3,8 +3,10 @@ package com.financeflow.di
 import com.financeflow.infrastructure.db.DatabaseConfig
 import com.financeflow.infrastructure.db.PayrollRepositoryImpl
 import com.financeflow.infrastructure.db.TransactionRepositoryImpl
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
+import org.koin.core.context.GlobalContext
 import com.financeflow.infrastructure.db.UserRepositoryImpl
-import com.financeflow.infrastructure.db.Tables
 import com.financeflow.infrastructure.jwt.JwtConfig
 import com.financeflow.application.services.AuthService
 import com.financeflow.application.services.PayrollService
@@ -28,7 +30,7 @@ val appModule = module {
     single { DatabaseConfig.database }
     
     // JWT
-    single { JwtConfig(environment.config) }
+    single { JwtConfig(get<Application>().environment.config) }
     
     // Repositories
     single<UserRepository> { UserRepositoryImpl(get()) }
@@ -43,7 +45,7 @@ val appModule = module {
 }
 
 // Extension functions for Koin components
-fun Application.getAuthService(): AuthService = getKoin().get()
-fun Application.getUserService(): UserService = getKoin().get()
-fun Application.getTransactionService(): TransactionService = getKoin().get()
-fun Application.getPayrollService(): PayrollService = getKoin().get()
+fun Application.getAuthService(): AuthService = GlobalContext.get().get()
+fun Application.getUserService(): UserService = GlobalContext.get().get()
+fun Application.getTransactionService(): TransactionService = GlobalContext.get().get()
+fun Application.getPayrollService(): PayrollService = GlobalContext.get().get()

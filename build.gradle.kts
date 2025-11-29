@@ -9,7 +9,7 @@ plugins {
 }
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
 ktor {
@@ -20,6 +20,7 @@ ktor {
 
 repositories {
     mavenCentral()
+    maven { url = uri("https://jitpack.io") }
 }
 
 group = "com.financeflow"
@@ -46,6 +47,15 @@ dependencies {
     // Content Negotiation
     implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktorVersion")
     implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion")
+    
+    // AsyncAPI
+    implementation("com.asyncapi:asyncapi-java-spring-cloud-stream:0.7.0")
+    
+    // Request Validation
+    implementation("io.ktor:ktor-server-request-validation:$ktorVersion")
+    
+    // Status Pages
+    implementation("io.ktor:ktor-server-status-pages-jvm:$ktorVersion")
 
     // Authentication
     implementation("io.ktor:ktor-server-auth-jvm:$ktorVersion")
@@ -88,6 +98,9 @@ dependencies {
     // Dependency Injection
     implementation("io.insert-koin:koin-ktor:3.5.3")
     implementation("io.insert-koin:koin-logger-slf4j:3.5.3")
+    
+    // AsyncAPI
+    implementation("com.github.AsyncApi:kotlin-dsl:0.1.0")
     
     // Testing
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")

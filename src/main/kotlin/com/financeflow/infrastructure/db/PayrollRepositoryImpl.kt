@@ -1,6 +1,9 @@
 package com.financeflow.infrastructure.db
 
+import com.financeflow.domain.model.DeductionType
 import com.financeflow.domain.model.Payroll
+import com.financeflow.domain.model.PayrollDeduction
+import com.financeflow.domain.model.PayrollBonus
 import com.financeflow.domain.model.PayrollStatus
 import com.financeflow.domain.repository.PayrollRepository
 import org.ktorm.database.Database

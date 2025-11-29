@@ -30,17 +30,17 @@ class OpenAPIConfig {
             allowMethod(HttpMethod.Put)
             allowMethod(HttpMethod.Delete)
         }
-        
-        // Install OpenAPI plugin
-        install(OpenAPI) {
-            info = createOpenAPIInfo()
-            server("http://localhost:8080") {
-                description = "Development server"
-            }
-            
-            // Configure JWT security scheme
-            components = Components().apply {
-                addSecuritySchemes(
+
+        // Configure OpenAPI documentation
+        val openApi = OpenAPI()
+            .info(createOpenAPIInfo())
+            .addServersItem(
+                io.swagger.v3.oas.models.servers.Server()
+                    .url("http://localhost:8080")
+                    .description("Development server")
+            )
+            .components(
+                Components().addSecuritySchemes(
                     "jwt_auth",
                     SecurityScheme()
                         .type(SecurityScheme.Type.HTTP)
@@ -48,6 +48,36 @@ class OpenAPIConfig {
                         .bearerFormat("JWT")
                         .`in`(SecurityScheme.In.HEADER)
                         .name("Authorization")
+                )
+            )
+            .addSecurityItem(SecurityRequirement().addList("jwt_auth"))
+
+        // Install Swagger UI at /swagger path
+        routing {
+            swaggerUI(path = "swagger", swagger = {
+                openApi
+            }) {
+                version = "4.15.5"
+            }
+        }
+    }
+
+    private fun createOpenAPIInfo(): Info {
+        return Info()
+            .title("FinanceFlow API")
+            .description("API documentation for FinanceFlow application")
+            .version("1.0.0")
+            .contact(
+                Contact()
+                    .name("FinanceFlow Team")
+                    .email("support@financeflow.com")
+            )
+            .license(
+                License()
+                    .name("Proprietary")
+                    .url("https://financeflow.com/license")
+            )
+    }
                 )
             }
             

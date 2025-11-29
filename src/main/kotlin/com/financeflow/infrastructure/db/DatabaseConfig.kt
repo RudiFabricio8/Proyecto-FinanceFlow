@@ -17,10 +17,16 @@ import javax.sql.DataSource
 private val logger = LoggerFactory.getLogger("DatabaseConfig")
 
 object DatabaseConfig {
-    private lateinit var dataSource: DataSource
+    private lateinit var dataSource: HikariDataSource
     lateinit var database: Database
+    private val isInitialized: Boolean get() = ::dataSource.isInitialized
     
+    @Throws(IllegalStateException::class)
     fun init(config: ApplicationConfig) {
+        if (isInitialized) {
+            logger.warn("Database is already initialized")
+            return
+        }
         // Configure HikariCP connection pool
         val dbConfig = HikariConfig().apply {
             driverClassName = config.property("ktor.database.driver").getString()
@@ -36,51 +42,76 @@ object DatabaseConfig {
             validate()
         }
         
-        dataSource = HikariDataSource(dbConfig)
-        database = Database.connect(dataSource)
-        
-        logger.info("Database connection pool initialized")
+        try {
+            dataSource = HikariDataSource(dbConfig).apply {
+                validate()
+            }
+            database = Database.connect(dataSource)
+            logger.info("Database connection pool initialized successfully")
+        } catch (e: Exception) {
+            logger.error("Failed to initialize database connection pool", e)
+            dataSource.close()
+            throw IllegalStateException("Failed to initialize database connection pool", e)
+        }
     }
-    
-    /**
-     * Run database migrations using Flyway
-     */
+
+    @Throws(IllegalStateException::class)
     fun migrate() {
+        if (!isInitialized) {
+            throw IllegalStateException("Database not initialized. Call init() first.")
+        }
+        
         try {
             val flyway = Flyway.configure()
                 .dataSource(dataSource)
                 .locations("classpath:db/migration")
                 .baselineOnMigrate(true)
+                .failOnMissingLocations(true)
+                .validateMigrationNaming(true)
                 .load()
             
             val migrations = flyway.info().all()
             logger.info("Found ${migrations.size} migrations")
             
-            val result = flyway.migrate()
-            
-            if (result.migrationsExecuted > 0) {
-                logger.info("Applied ${result.migrationsExecuted} database migration(s)")
-                migrations.takeLast(result.migrationsExecuted).forEach {
-                    logger.info("Applied migration: ${it.version} - ${it.description}")
+            if (migrations.isNotEmpty()) {
+                val result = flyway.migrate()
+                
+                if (result.migrationsExecuted > 0) {
+                    logger.info("Successfully applied ${result.migrationsExecuted} database migration(s)")
+                    migrations.takeLast(result.migrationsExecuted).forEach {
+                        logger.info("Applied migration: ${it.version} - ${it.description}")
+                    }
+                } else {
+                    logger.info("Database is up to date - no new migrations to apply")
                 }
+                
+                // Validate after migration
+                flyway.validate()
             } else {
-                logger.info("No new migrations to apply")
+                logger.warn("No migration scripts found in classpath:db/migration")
             }
         } catch (e: Exception) {
             logger.error("Failed to run database migrations", e)
             throw IllegalStateException("Failed to run database migrations", e)
         }
     }
-    
-    /**
-     * Clean the database (for testing purposes only)
-     */
+    @Throws(IllegalStateException::class)
     fun clean() {
+        if (!isInitialized) {
+            throw IllegalStateException("Database not initialized. Call init() first.")
+        }
+        
         try {
+            if (System.getenv("ENVIRONMENT") != "test") {
+                logger.error("Clean operation is only allowed in test environment")
+                throw IllegalStateException("Clean operation is only allowed in test environment")
+            }
+            
             val flyway = Flyway.configure()
                 .dataSource(dataSource)
                 .load()
             
+            logger.warn("Starting database clean operation - this will remove all data!")
             flyway.clean()
             logger.warn("Database cleaned - all data has been removed")
         } catch (e: Exception) {
@@ -89,20 +120,26 @@ object DatabaseConfig {
         }
     }
     
-    /**
-     * Close the database connection pool
-     */
+
+    @Synchronized
     fun close() {
-        if (::dataSource.isInitialized) {
-            (dataSource as HikariDataSource).close()
-            logger.info("Database connection pool closed")
+        if (isInitialized) {
+            try {
+                if (!dataSource.isClosed) {
+                    logger.info("Closing database connection pool...")
+                    dataSource.close()
+                    logger.info("Database connection pool closed successfully")
+                }
+            } catch (e: Exception) {
+                logger.error("Error while closing database connection pool", e)
+                throw e
+            }
+        } else {
+            logger.warn("Attempted to close database connection pool, but it was not initialized")
         }
     }
 }
 
-/**
- * Extension function to get database configuration from Application
- */
 fun Application.getDatabaseConfig(): ApplicationConfig {
     return this.environment.config.config("ktor.database")
 }

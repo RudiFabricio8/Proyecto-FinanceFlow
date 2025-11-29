@@ -8,22 +8,83 @@ import com.financeflow.infrastructure.configureSerialization
 import com.financeflow.infrastructure.db.DatabaseConfig
 import com.financeflow.infrastructure.db.migrate
 import com.financeflow.util.OpenAPIDocumentation
+import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.server.plugins.callloging.*
 import io.ktor.server.plugins.openapi.*
+import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.swagger.v3.oas.models.OpenAPI
+import org.slf4j.LoggerFactory
+import org.slf4j.event.Level
 
 fun main() {
-    // Run database migrations before starting the server
-    DatabaseConfig.migrate()
-    
-    embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::module)
-        .start(wait = true)
+    try {
+        // Initialize application configuration
+        val environment = applicationEngineEnvironment {
+            module { module() }
+            connector {
+                host = System.getenv("HOST") ?: "0.0.0.0"
+                port = (System.getenv("PORT") ?: "8080").toInt()
+            }
+        }
+        
+        // Run database migrations before starting the server
+        runCatching {
+            DatabaseConfig.migrate()
+            logger.info("Database migrations completed successfully")
+        }.onFailure { e ->
+            logger.error("Failed to run database migrations", e)
+            throw e
+        }
+        
+        // Start the server
+        embeddedServer(Netty, environment).start(wait = true)
+        
+    } catch (e: Exception) {
+        logger.error("Application failed to start", e)
+        System.exit(1)
+    } finally {
+        // Ensure resources are cleaned up
+        runCatching { DatabaseConfig.close() }
+            .onFailure { e -> logger.error("Error during shutdown", e) }
+    }
 }
 
+private val logger = LoggerFactory.getLogger("Application")
+
 fun Application.module() {
+    // Configure logging
+    install(CallLogging) {
+        level = Level.INFO
+        filter { call -> call.request.path().startsWith("/") }
+    }
+    
+    // Configure exception handling
+    install(StatusPages) {
+        exception<Throwable> { call, cause ->
+            when (cause) {
+                is IllegalArgumentException -> {
+                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to cause.message ?: "Invalid request"))
+                }
+                is NoSuchElementException -> {
+                    call.respond(HttpStatusCode.NotFound, mapOf("error" to cause.message ?: "Resource not found"))
+                }
+                else -> {
+                    logger.error("Unhandled exception", cause)
+                    call.respond(
+                        HttpStatusCode.InternalServerError,
+                        mapOf("error" to "Internal server error")
+                    )
+                }
+            }
+        }
+    }
+    
     // Configure OpenAPI documentation
     install(OpenAPI) {
         swaggerUI = true
@@ -38,6 +99,11 @@ fun Application.module() {
     
     // Setup routes
     routing {
+        // Health check endpoint
+        get("/health") {
+            call.respond(mapOf("status" to "OK"))
+        }
+        
         // API documentation routes
         OpenAPIConfig().apply {
             configureOpenAPI()
@@ -45,6 +111,12 @@ fun Application.module() {
         
         // Application routes
         configureRouting()
+    }
+    
+    // Add shutdown hook for cleanup
+    environment.monitor.subscribe(ApplicationStopped) {
+        logger.info("Application is stopping...")
+        DatabaseConfig.close()
     }
 }
 
