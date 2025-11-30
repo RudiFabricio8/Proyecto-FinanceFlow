@@ -26,6 +26,7 @@ private suspend fun ApplicationCall.requireAdminOrAccountant(userRepository: Use
 
 fun Route.payrollRoutes() {
     val payrollService: PayrollService by inject()
+    val userRepository: UserRepository by inject()
     
     route("/payrolls") {
         authenticate {

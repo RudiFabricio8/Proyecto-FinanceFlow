@@ -2,7 +2,7 @@ package com.financeflow.config
 
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.plugins.cors.*
+import io.ktor.server.plugins.cors.routing.CORS
 import io.ktor.server.plugins.openapi.*
 import io.ktor.server.plugins.swagger.*
 import io.ktor.server.response.*
@@ -17,7 +17,6 @@ import io.swagger.v3.oas.models.security.SecurityScheme
 
 class OpenAPIConfig {
     fun Application.configureOpenAPI() {
-        // Enable CORS for the OpenAPI endpoints
         install(CORS) {
             anyHost()
             allowCredentials = true
@@ -52,50 +51,15 @@ class OpenAPIConfig {
             )
             .addSecurityItem(SecurityRequirement().addList("jwt_auth"))
 
-        // Install Swagger UI at /swagger path
         routing {
-            swaggerUI(path = "swagger", swagger = {
-                openApi
-            }) {
+            get("/openapi.json") {
+                call.respond(openApi)
+            }
+            
+            swaggerUI(path = "swagger", apiUrl = "/openapi.json", api = "FinanceFlow API") {
                 version = "4.15.5"
             }
-        }
-    }
-
-    private fun createOpenAPIInfo(): Info {
-        return Info()
-            .title("FinanceFlow API")
-            .description("API documentation for FinanceFlow application")
-            .version("1.0.0")
-            .contact(
-                Contact()
-                    .name("FinanceFlow Team")
-                    .email("support@financeflow.com")
-            )
-            .license(
-                License()
-                    .name("Proprietary")
-                    .url("https://financeflow.com/license")
-            )
-    }
-                )
-            }
             
-            // Add security requirement to all operations
-            security = listOf(SecurityRequirement().addList("jwt_auth"))
-        }
-        
-        routing {
-            // Serve OpenAPI specification
-            openAPI(path = "openapi.json")
-            
-            // Serve Swagger UI
-            swaggerUI(path = "swagger", swaggerFile = "openapi.json") {
-                version = "4.15.5"
-                // Customize Swagger UI if needed
-            }
-            
-            // Redirect root to Swagger UI
             get("/") {
                 call.respondRedirect("/swagger", permanent = true)
             }
@@ -127,23 +91,10 @@ class OpenAPIConfig {
                     .name("Apache 2.0")
                     .url("https://www.apache.org/licenses/LICENSE-2.0.html")
             )
-            scheme = "bearer"
-            bearerFormat = "JWT"
-            description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\""
-        }
-        
-        // Default security
-        defaultSecurity = listOf("jwt_auth")
-    }
-    
-    // Serve Swagger UI
-    swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml") {
-        version = "4.15.5"
     }
 }
 
 fun Route.apiDocumentation() {
     route("/api-docs") {
-        configureOpenAPI()
     }
 }

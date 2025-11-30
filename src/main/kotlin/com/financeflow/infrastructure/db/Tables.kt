@@ -1,6 +1,7 @@
 package com.financeflow.infrastructure.db
 
 import org.ktorm.schema.*
+import org.ktorm.schema.unique
 import org.ktorm.schema.nullable
 import java.util.*
 
@@ -10,7 +11,7 @@ object Users : Table<Nothing>("users") {
     val password = varchar("password")
     val fullName = varchar("full_name")
     val role = varchar("role")
-    val isActive = boolean("is_active").default(true)
+    val isActive = boolean("is_active").defaultTo(true)
     val createdAt = long("created_at")
     val updatedAt = long("updated_at")
 }

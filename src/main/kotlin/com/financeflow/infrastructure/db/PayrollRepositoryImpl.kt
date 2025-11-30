@@ -45,8 +45,8 @@ class PayrollRepositoryImpl(private val database: Database) : PayrollRepository 
             set(it.userId, entity.userId)
             set(it.periodStart, entity.periodStart)
             set(it.periodEnd, entity.periodEnd)
-            set(it.baseSalary, entity.baseSalary)
-            set(it.netPay, entity.netPay)
+            set(it.baseSalary, entity.baseSalary.toBigDecimal())
+            set(it.netPay, entity.netPay.toBigDecimal())
             set(it.status, entity.status.name)
             set(it.paymentDate, entity.paymentDate)
             set(it.updatedAt, now)
@@ -63,8 +63,8 @@ class PayrollRepositoryImpl(private val database: Database) : PayrollRepository 
                 set(it.userId, entity.userId)
                 set(it.periodStart, entity.periodStart)
                 set(it.periodEnd, entity.periodEnd)
-                set(it.baseSalary, entity.baseSalary)
-                set(it.netPay, entity.netPay)
+                set(it.baseSalary, entity.baseSalary.toBigDecimal())
+                set(it.netPay, entity.netPay.toBigDecimal())
                 set(it.status, entity.status.name)
                 set(it.paymentDate, entity.paymentDate)
                 set(it.createdAt, now)
@@ -158,7 +158,7 @@ class PayrollRepositoryImpl(private val database: Database) : PayrollRepository 
                 set(it.id, UUID.randomUUID())
                 set(it.payrollId, payrollId)
                 set(it.name, deduction.name)
-                set(it.amount, deduction.amount)
+                set(it.amount, deduction.amount.toBigDecimal())
                 set(it.type, deduction.type.name)
                 set(it.description, deduction.description)
             }
@@ -175,21 +175,22 @@ class PayrollRepositoryImpl(private val database: Database) : PayrollRepository 
                 set(it.id, UUID.randomUUID())
                 set(it.payrollId, payrollId)
                 set(it.name, bonus.name)
-                set(it.amount, bonus.amount)
+                set(it.amount, bonus.amount.toBigDecimal())
                 set(it.description, bonus.description)
             }
         }
     }
 
     private fun QueryRowSet.toPayroll(): Payroll {
+        val payrollId = this[Payrolls.id]!!
         return Payroll(
-            id = this[Payrolls.id]!!,
+            id = payrollId,
             userId = this[Payrolls.userId]!!,
             periodStart = this[Payrolls.periodStart]!!,
             periodEnd = this[Payrolls.periodEnd]!!,
             baseSalary = this[Payrolls.baseSalary]!!.toDouble(),
-            deductions = emptyList(), // Will be populated separately
-            bonuses = emptyList(),    // Will be populated separately
+            deductions = getPayrollDeductions(payrollId),
+            bonuses = getPayrollBonuses(payrollId),
             netPay = this[Payrolls.netPay]!!.toDouble(),
             status = PayrollStatus.valueOf(this[Payrolls.status]!!),
             paymentDate = this[Payrolls.paymentDate],
