@@ -68,7 +68,7 @@ fun StatusPagesConfig.configure() {
                     ErrorResponse(
                         status = HttpStatusCode.InternalServerError.value,
                         message = "Internal server error",
-                        details = if (call.application.environment.development) {
+                        details = if (call.application.environment.developmentMode) {
                             mapOf(
                                 "error" to cause.toString(),
                                 "stackTrace" to cause.stackTraceToString()

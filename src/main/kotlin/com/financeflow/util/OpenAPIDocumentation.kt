@@ -1,51 +1,88 @@
 package com.financeflow.util
 
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.routing.*
-import io.ktor.server.plugins.openapi.*
-import io.ktor.server.plugins.swagger.*
-import io.ktor.server.response.*
-import io.ktor.server.request.*
+import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.models.*
 import io.swagger.v3.oas.models.media.*
-import io.swagger.v3.oas.models.parameters.*
 import io.swagger.v3.oas.models.servers.Server
+import io.swagger.v3.oas.models.parameters.Parameter
 import io.swagger.v3.oas.models.responses.*
 import io.swagger.v3.oas.models.security.SecurityRequirement
 import io.swagger.v3.oas.models.security.SecurityScheme
-import java.util.*
-
-import com.fasterxml.jackson.annotation.JsonProperty
-// Removed annotation Schema import as we'll use the model Schema instead
+import io.swagger.v3.oas.models.Operation
 
 /**
  * OpenAPI documentation configuration for the FinanceFlow API.
  * This object provides utilities for generating OpenAPI documentation.
  */
 object OpenAPIDocumentation {
-    /**
-     * Security requirement for JWT authentication.
-     * This is used to secure API endpoints that require authentication.
-     */
-    val securityRequirement = SecurityRequirement().addList("jwt_auth")
-    
     private const val DEFAULT_ERROR_MESSAGE = "An unexpected error occurred"
     
-    private val errorResponse: ApiResponse
-        get() = ApiResponse()
-            .description("Error response")
+    
+    
+    /**
+     * Creates a standard error response.
+     * @param description Description of the error response
+     * @return Configured ApiResponse
+     */
+    fun createErrorResponse(description: String = "Error response"): ApiResponse {
+        return ApiResponse()
+            .description(description)
+            .content(
+                Content().addMediaType(
+                    "application/json",
+                    MediaType().schema(
+                        Schema<Any>().`$ref`("#/components/schemas/ErrorResponse")
+                    )
+                )
+            )
+    }
+    
+    /**
+     * Creates an unauthorized error response.
+     * @return Configured ApiResponse for 401 Unauthorized
+     */
+    fun createUnauthorizedResponse(): ApiResponse {
+        return ApiResponse()
+            .description("Unauthorized")
             .content(
                 Content().addMediaType(
                     "application/json",
                     MediaType().schema(
                         ObjectSchema()
-                            .addProperties("status", IntegerSchema().example(400))
-                            .addProperties("message", StringSchema().example("Error message"))
-                            .addProperties("details", ObjectSchema())
+                            .addProperties("status", IntegerSchema().example(401))
+                            .addProperties("message", StringSchema().example("Unauthorized"))
                     )
                 )
             )
+    }
+    
+    /**
+     * Creates a standard success response with a schema reference.
+     * @param description Description of the successful response
+     * @param schemaName Name of the schema to reference
+     * @param isArray Whether the response is an array of the schema
+     * @return Configured ApiResponse
+     */
+    fun createSuccessResponse(
+        description: String,
+        schemaName: String,
+        isArray: Boolean = false
+    ): ApiResponse {
+        val schema = if (isArray) {
+            ArraySchema().items(Schema<Any>().`$ref`("#/components/schemas/$schemaName"))
+        } else {
+            Schema<Any>().`$ref`("#/components/schemas/$schemaName")
+        }
+        
+        return ApiResponse()
+            .description(description)
+            .content(
+                Content().addMediaType(
+                    "application/json",
+                    MediaType().schema(schema)
+                )
+            )
+    }
     
     private val unauthorizedResponse: ApiResponse
         get() = ApiResponse()
@@ -60,6 +97,11 @@ object OpenAPIDocumentation {
                     )
                 )
             )
+            
+    private val errorResponse: ApiResponse
+        get() = createErrorResponse("Internal Server Error")
+    
+    private val securityRequirement = SecurityRequirement().addList("jwt_auth")
     
     private val forbiddenResponse: ApiResponse
         get() = ApiResponse()
@@ -179,6 +221,24 @@ object OpenAPIDocumentation {
             example = "{ \"field\": \"email\", \"error\": \"must be a well-formed email address\" }"
         )
         val details: Map<String, Any>? = null
+    )
+    
+    /**
+     * Pagination metadata schema.
+     */
+    @Schema(description = "Pagination metadata")
+    data class PaginationMetadata(
+        @field:Schema(description = "Current page number", example = "1")
+        val page: Int,
+        
+        @field:Schema(description = "Number of items per page", example = "20")
+        val pageSize: Int,
+        
+        @field:Schema(description = "Total number of items", example = "100")
+        val totalItems: Int,
+        
+        @field:Schema(description = "Total number of pages", example = "5")
+        val totalPages: Int
     )
     
     /**

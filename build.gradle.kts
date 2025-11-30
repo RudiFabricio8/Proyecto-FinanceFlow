@@ -43,17 +43,14 @@ dependencies {
     implementation("io.ktor:ktor-server-core-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-netty-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-config-yaml:$ktorVersion")
-    
+
     // Content Negotiation
     implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktorVersion")
     implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion")
-    
-    // AsyncAPI
-    implementation("com.asyncapi:asyncapi-java-spring-cloud-stream:0.7.0")
-    
+
     // Request Validation
     implementation("io.ktor:ktor-server-request-validation:$ktorVersion")
-    
+
     // Status Pages
     implementation("io.ktor:ktor-server-status-pages-jvm:$ktorVersion")
 
@@ -66,42 +63,37 @@ dependencies {
     implementation("io.ktor:ktor-server-cors-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-call-logging-jvm:$ktorVersion")
     implementation("ch.qos.logback:logback-classic:$logback_version")
-    
+
     // OpenAPI / Swagger
     implementation("io.ktor:ktor-server-openapi:$ktorVersion")
     implementation("io.ktor:ktor-server-swagger:$ktorVersion")
-    implementation("io.ktor:ktor-server-swagger-ui:$ktorVersion")
     implementation("io.swagger.core.v3:swagger-core-jakarta:$swaggerVersion")
     implementation("io.swagger.core.v3:swagger-models:$swaggerVersion")
     implementation("io.swagger.core.v3:swagger-annotations:$swaggerVersion")
     implementation("io.swagger.core.v3:swagger-jaxrs2:$swaggerVersion")
-    
+
     // Security
     implementation("org.mindrot:jbcrypt:0.4")
-    
+
     // Database
     implementation("org.ktorm:ktorm-core:$ktormVersion")
     implementation("org.ktorm:ktorm-support-postgresql:$ktormVersion")
     implementation("org.postgresql:postgresql:$postgresqlVersion")
     implementation("com.zaxxer:HikariCP:$hikariCpVersion")
-    
+
     // Database Migrations
     implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
     implementation("org.flywaydb:flyway-core:$flywayVersion")
-    
+
     // Additional Utilities
     implementation("com.typesafe:config:1.4.3")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
-    implementation("com.benasher44:uuid-ktx:0.8.2")
     implementation("org.valiktor:valiktor-core:0.12.0")
-    
+
     // Dependency Injection
     implementation("io.insert-koin:koin-ktor:3.5.3")
     implementation("io.insert-koin:koin-logger-slf4j:3.5.3")
-    
-    // AsyncAPI
-    implementation("com.github.AsyncApi:kotlin-dsl:0.1.0")
-    
+
     // Testing
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation("org.jetbrains.kotlin:kotlin-test:$kotlin_version")
@@ -112,9 +104,8 @@ dependencies {
     testImplementation("org.testcontainers:junit-jupiter:1.19.6")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.1")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.1")
-    testImplementation("org.testcontainers:postgresql:1.19.6")
-    testImplementation("org.testcontainers:junit-jupiter:1.19.6")
 }
+
 
 tasks.test {
     useJUnitPlatform()

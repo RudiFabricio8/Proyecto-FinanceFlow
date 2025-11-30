@@ -24,7 +24,7 @@ fun Application.configureHTTP() {
         openAPI(path = "openapi")
     }
     install(AsyncApiPlugin) {
-        extension = AsyncApiExtension.builder {
+        extension = AsyncApiExtension.builder<Unit>(Unit) {
             info {
                 title("Sample API")
                 version("1.0.0")

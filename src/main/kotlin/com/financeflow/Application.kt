@@ -1,119 +1,146 @@
 package com.financeflow
 
-import com.financeflow.adapters.rest.configureRouting
 import com.financeflow.config.OpenAPIConfig
 import com.financeflow.infrastructure.configureAuth
 import com.financeflow.infrastructure.configureDatabase
 import com.financeflow.infrastructure.configureSerialization
 import com.financeflow.infrastructure.db.DatabaseConfig
 import com.financeflow.infrastructure.db.migrate
-import com.financeflow.util.OpenAPIDocumentation
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
-import io.ktor.server.application.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
-import io.ktor.server.plugins.callloging.*
-import io.ktor.server.plugins.openapi.*
-import io.ktor.server.plugins.statuspages.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import io.swagger.v3.oas.models.OpenAPI
+import com.financeflow.routing.configureRouting
+import io.ktor.http.HttpStatusCode
+import io.ktor.serialization.kotlinx.json.json
+import io.ktor.server.application.Application
+import io.ktor.server.application.install
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.engine.applicationEngineEnvironment
+import io.ktor.server.engine.connector
+import io.ktor.server.netty.Netty
+import io.ktor.server.plugins.callloging.CallLogging
+import io.ktor.server.plugins.callloging.CallLoggingConfig
+import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.plugins.statuspages.StatusPagesConfig
+import io.ktor.server.response.respond
+import io.ktor.server.routing.routing
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 
+private val logger = LoggerFactory.getLogger("Application")
+
 fun main() {
     try {
-        // Initialize application configuration
-        val environment = applicationEngineEnvironment {
-            module { module() }
-            connector {
-                host = System.getenv("HOST") ?: "0.0.0.0"
-                port = (System.getenv("PORT") ?: "8080").toInt()
-            }
-        }
-        
-        // Run database migrations before starting the server
-        runCatching {
-            DatabaseConfig.migrate()
-            logger.info("Database migrations completed successfully")
-        }.onFailure { e ->
-            logger.error("Failed to run database migrations", e)
-            throw e
-        }
-        
-        // Start the server
-        embeddedServer(Netty, environment).start(wait = true)
-        
+        startApplication()
     } catch (e: Exception) {
         logger.error("Application failed to start", e)
         System.exit(1)
     } finally {
-        // Ensure resources are cleaned up
-        runCatching { DatabaseConfig.close() }
-            .onFailure { e -> logger.error("Error during shutdown", e) }
+        shutdownApplication()
     }
 }
 
-private val logger = LoggerFactory.getLogger("Application")
+private fun startApplication() {
+    val environment = applicationEngineEnvironment {
+        module { module() }
+        configureServer()
+    }
+    
+    runDatabaseMigrations()
+    startServer(environment)
+}
+
+private fun ApplicationEngineEnvironment.configureServer() {
+    connector {
+        host = System.getenv("HOST") ?: "0.0.0.0"
+        port = (System.getenv("PORT") ?: "8080").toInt()
+    }
+}
+
+private fun runDatabaseMigrations() {
+    runCatching {
+        DatabaseConfig.migrate()
+        logger.info("Database migrations completed successfully")
+    }.onFailure { e ->
+        logger.error("Failed to run database migrations", e)
+        throw e
+    }
+}
+
+private fun startServer(environment: ApplicationEngineEnvironment) {
+    embeddedServer(Netty, environment).start(wait = true)
+}
+
+private fun shutdownApplication() {
+    runCatching { 
+        DatabaseConfig.close() 
+    }.onFailure { e -> 
+        logger.error("Error during shutdown", e) 
+    }
+}
 
 fun Application.module() {
-    // Configure logging
+    configureLogging()
+    configureExceptionHandling()
+    configureApplicationModules()
+    configureOpenAPI()
+    configureRouting()
+    configureShutdownHook()
+}
+
+private fun Application.configureLogging() {
     install(CallLogging) {
         level = Level.INFO
         filter { call -> call.request.path().startsWith("/") }
     }
-    
-    // Configure exception handling
+}
+
+private fun Application.configureExceptionHandling() {
     install(StatusPages) {
+        exception<IllegalArgumentException> { call, cause ->
+            call.respond(
+                HttpStatusCode.BadRequest, 
+                mapOf("error" to (cause.message ?: "Invalid request"))
+            )
+        }
+        
+        exception<NoSuchElementException> { call, cause ->
+            call.respond(
+                HttpStatusCode.NotFound, 
+                mapOf("error" to (cause.message ?: "Resource not found"))
+            )
+        }
+        
         exception<Throwable> { call, cause ->
-            when (cause) {
-                is IllegalArgumentException -> {
-                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to cause.message ?: "Invalid request"))
-                }
-                is NoSuchElementException -> {
-                    call.respond(HttpStatusCode.NotFound, mapOf("error" to cause.message ?: "Resource not found"))
-                }
-                else -> {
-                    logger.error("Unhandled exception", cause)
-                    call.respond(
-                        HttpStatusCode.InternalServerError,
-                        mapOf("error" to "Internal server error")
-                    )
-                }
-            }
+            logger.error("Unhandled exception", cause)
+            call.respond(
+                HttpStatusCode.InternalServerError,
+                mapOf("error" to "Internal server error")
+            )
         }
     }
-    
-    // Configure OpenAPI documentation
+}
+
+private fun Application.configureApplicationModules() {
+    configureSerialization()
+    configureDatabase()
+    configureAuth()
+}
+
+private fun Application.configureOpenAPI() {
     install(OpenAPI) {
         swaggerUI = true
         swaggerPath = "/swagger"
         openAPI = createOpenAPIDocumentation()
     }
-    
-    // Configure application modules
-    configureSerialization()
-    configureDatabase()
-    configureAuth()
-    
-    // Setup routes
+    OpenAPIConfig().configureOpenAPI()
+}
+
+private fun Application.configureRouting() {
     routing {
-        // Health check endpoint
-        get("/health") {
-            call.respond(mapOf("status" to "OK"))
-        }
-        
-        // API documentation routes
-        OpenAPIConfig().apply {
-            configureOpenAPI()
-        }
-        
         // Application routes
         configureRouting()
     }
-    
-    // Add shutdown hook for cleanup
+}
+
+private fun Application.configureShutdownHook() {
     environment.monitor.subscribe(ApplicationStopped) {
         logger.info("Application is stopping...")
         DatabaseConfig.close()
@@ -121,32 +148,42 @@ fun Application.module() {
 }
 
 private fun createOpenAPIDocumentation(): OpenAPI {
-    return OpenAPIDocumentation.createDocumentation {
-        // Add security requirements
-        addSecurityItem(OpenAPIDocumentation.securityRequirement)
+    return OpenAPI().apply {
+        info = io.swagger.v3.oas.models.info.Info()
+            .title("FinanceFlow API")
+            .description("API for FinanceFlow application")
+            .version("1.0.0")
         
-        // Configure components
-        components {
+        // Add security scheme
+        components = Components().apply {
             addSecuritySchemes(
-                "jwt_auth",
-                io.swagger.v3.oas.models.security.SecurityScheme()
-                    .type(io.swagger.v3.oas.models.security.SecurityScheme.Type.HTTP)
+                "bearerAuth",
+                SecurityScheme()
+                    .type(SecurityScheme.Type.HTTP)
                     .scheme("bearer")
                     .bearerFormat("JWT")
+                    .`in`(SecurityScheme.In.HEADER)
+                    .name("Authorization")
             )
-            
-            // Add schemas
-            OpenAPIDocumentation().apply {
-                addSchemas()
-            }
         }
+        
+        // Add security requirement
+        addSecurityItem(SecurityRequirement().addList("bearerAuth"))
         
         // Add tags
         tags = listOf(
-            io.swagger.v3.oas.models.tags.Tag().name("Authentication").description("Authentication endpoints"),
-            io.swagger.v3.oas.models.tags.Tag().name("Users").description("User management endpoints"),
-            io.swagger.v3.oas.models.tags.Tag().name("Transactions").description("Transaction management endpoints"),
-            io.swagger.v3.oas.models.tags.Tag().name("Payroll").description("Payroll management endpoints")
+            io.swagger.v3.oas.models.tags.Tag()
+                .name("Authentication")
+                .description("Authentication endpoints"),
+            io.swagger.v3.oas.models.tags.Tag()
+                .name("Users")
+                .description("User management endpoints"),
+            io.swagger.v3.oas.models.tags.Tag()
+                .name("Transactions")
+                .description("Transaction management endpoints"),
+            io.swagger.v3.oas.models.tags.Tag()
+                .name("Payroll")
+                .description("Payroll management endpoints")
         )
     }
 }
