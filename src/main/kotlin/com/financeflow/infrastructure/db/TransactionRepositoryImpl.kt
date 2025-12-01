@@ -6,24 +6,11 @@ import com.financeflow.domain.model.TransactionType
 import com.financeflow.domain.repository.TransactionRepository
 import org.ktorm.database.Database
 import org.ktorm.dsl.*
-import org.ktorm.schema.*
+import org.ktorm.dsl.sum
+import org.ktorm.dsl.QueryRowSet
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.UUID
-
-object Transactions : Table<Nothing>("transactions") {
-    val id = uuid("id").primaryKey()
-    val userId = uuid("user_id")
-    val amount = double("amount")
-    val type = varchar("type")
-    val category = varchar("category")
-    val description = varchar("description")
-    val date = long("date")          // millis desde epoch
-    val reference = varchar("reference")
-    val status = varchar("status")
-    val createdAt = long("created_at")
-    val updatedAt = long("updated_at")
-}
 
 class TransactionRepositoryImpl(private val database: Database) : TransactionRepository {
 
@@ -45,9 +32,16 @@ class TransactionRepositoryImpl(private val database: Database) : TransactionRep
         val now = System.currentTimeMillis()
 
         val affectedRecords = database.update(Transactions) {
-            applyCommonFields(entity)
-            set(it.updatedAt, now)
-            where { it.id eq entity.id }
+            set(Transactions.userId, entity.userId)
+            set(Transactions.amount, entity.amount)
+            set(Transactions.type, entity.type.name)
+            set(Transactions.category, entity.category)
+            set(Transactions.description, entity.description)
+            set(Transactions.date, entity.date)
+            set(Transactions.reference, entity.reference)
+            set(Transactions.status, entity.status.name)
+            set(Transactions.updatedAt, now)
+            where { Transactions.id eq entity.id }
         }
 
         return if (affectedRecords == 0) {
@@ -58,10 +52,17 @@ class TransactionRepositoryImpl(private val database: Database) : TransactionRep
             )
 
             database.insert(Transactions) {
-                set(it.id, newTransaction.id)
-                applyCommonFields(newTransaction)
-                set(it.createdAt, newTransaction.createdAt)
-                set(it.updatedAt, newTransaction.updatedAt)
+                set(Transactions.id, newTransaction.id)
+                set(Transactions.userId, newTransaction.userId)
+                set(Transactions.amount, newTransaction.amount)
+                set(Transactions.type, newTransaction.type.name)
+                set(Transactions.category, newTransaction.category)
+                set(Transactions.description, newTransaction.description)
+                set(Transactions.date, newTransaction.date)
+                set(Transactions.reference, newTransaction.reference)
+                set(Transactions.status, newTransaction.status.name)
+                set(Transactions.createdAt, newTransaction.createdAt)
+                set(Transactions.updatedAt, newTransaction.updatedAt)
             }
 
             newTransaction
@@ -71,17 +72,15 @@ class TransactionRepositoryImpl(private val database: Database) : TransactionRep
     }
 
     override suspend fun delete(id: UUID): Boolean {
-        val affectedRows = database.delete(Transactions) { it.id eq id }
+        val affectedRows = database.delete(Transactions) { Transactions.id eq id }
         return affectedRows > 0
     }
 
     override suspend fun existsById(id: UUID): Boolean {
-        val count = database.from(Transactions)
-            .select()
+        return database.from(Transactions)
+            .select(Transactions.id)
             .where { Transactions.id eq id }
-            .totalRecordsInAllPages
-
-        return count > 0
+            .totalRecords > 0
     }
 
     override suspend fun findByUserId(userId: UUID): List<Transaction> {
@@ -124,9 +123,9 @@ class TransactionRepositoryImpl(private val database: Database) : TransactionRep
 
     override suspend fun updateStatus(transactionId: UUID, status: TransactionStatus): Boolean {
         val affectedRows = database.update(Transactions) {
-            set(it.status, status.name)
-            set(it.updatedAt, System.currentTimeMillis())
-            where { it.id eq transactionId }
+            set(Transactions.status, status.name)
+            set(Transactions.updatedAt, System.currentTimeMillis())
+            where { Transactions.id eq transactionId }
         }
         return affectedRows > 0
     }
@@ -149,26 +148,18 @@ class TransactionRepositoryImpl(private val database: Database) : TransactionRep
                         (Transactions.type eq type.name) and
                         (Transactions.status eq TransactionStatus.COMPLETED.name)
             }
-            .map { it[amountAlias]?.toDouble() ?: 0.0 }
+            .map { row ->
+                val total: Number? = row[amountAlias]
+                total?.toDouble() ?: 0.0
+            }
             .firstOrNull() ?: 0.0
-    }
-
-    private fun AssignmentsBuilder.applyCommonFields(tx: Transaction) {
-        set(Transactions.userId, tx.userId)
-        set(Transactions.amount, tx.amount)
-        set(Transactions.type, tx.type.name)
-        set(Transactions.category, tx.category)
-        set(Transactions.description, tx.description)
-        set(Transactions.date, tx.date)
-        set(Transactions.reference, tx.reference)
-        set(Transactions.status, tx.status.name)
     }
 
     private fun QueryRowSet.toTransaction(): Transaction {
         return Transaction(
             id = this[Transactions.id]!!,
             userId = this[Transactions.userId]!!,
-            amount = this[Transactions.amount]!!,
+            amount = this[Transactions.amount]!!.toDouble(),
             type = TransactionType.valueOf(this[Transactions.type]!!),
             category = this[Transactions.category]!!,
             description = this[Transactions.description],

@@ -2,13 +2,14 @@ package com.financeflow.infrastructure.db
 
 import com.financeflow.domain.model.DeductionType
 import com.financeflow.domain.model.Payroll
-import com.financeflow.domain.model.PayrollDeduction
 import com.financeflow.domain.model.PayrollBonus
+import com.financeflow.domain.model.PayrollDeduction
 import com.financeflow.domain.model.PayrollStatus
 import com.financeflow.domain.repository.PayrollRepository
 import org.ktorm.database.Database
 import org.ktorm.dsl.*
-import java.util.*
+import org.ktorm.dsl.QueryRowSet
+import java.util.UUID
 
 class PayrollRepositoryImpl(private val database: Database) : PayrollRepository {
 
@@ -16,7 +17,7 @@ class PayrollRepositoryImpl(private val database: Database) : PayrollRepository 
         val payrolls = database.from(Payrolls)
             .select()
             .map { it.toPayroll() }
-        
+
         return payrolls.map { payroll ->
             val deductions = getPayrollDeductions(payroll.id)
             val bonuses = getPayrollBonuses(payroll.id)
@@ -31,68 +32,62 @@ class PayrollRepositoryImpl(private val database: Database) : PayrollRepository 
             .map { it.toPayroll() }
             .firstOrNull()
             ?: return null
-            
+
         val deductions = getPayrollDeductions(id)
         val bonuses = getPayrollBonuses(id)
-        
+
         return payroll.copy(deductions = deductions, bonuses = bonuses)
     }
 
     override suspend fun save(entity: Payroll): Payroll {
         val now = System.currentTimeMillis()
-        
+
         val affectedRecords = database.update(Payrolls) {
-            set(it.userId, entity.userId)
-            set(it.periodStart, entity.periodStart)
-            set(it.periodEnd, entity.periodEnd)
-            set(it.baseSalary, entity.baseSalary.toBigDecimal())
-            set(it.netPay, entity.netPay.toBigDecimal())
-            set(it.status, entity.status.name)
-            set(it.paymentDate, entity.paymentDate)
-            set(it.updatedAt, now)
-            
-            where { it.id eq entity.id }
+            set(Payrolls.userId, entity.userId)
+            set(Payrolls.periodStart, entity.periodStart)
+            set(Payrolls.periodEnd, entity.periodEnd)
+            set(Payrolls.baseSalary, entity.baseSalary)   // Double
+            set(Payrolls.netPay, entity.netPay)           // Double
+            set(Payrolls.status, entity.status.name)
+            set(Payrolls.paymentDate, entity.paymentDate)
+            set(Payrolls.updatedAt, now)
+            where { Payrolls.id eq entity.id }
         }
-        
+
         val payrollId = if (affectedRecords == 0) {
-            // Insert new payroll
             val newId = UUID.randomUUID()
-            
+
             database.insert(Payrolls) {
-                set(it.id, newId)
-                set(it.userId, entity.userId)
-                set(it.periodStart, entity.periodStart)
-                set(it.periodEnd, entity.periodEnd)
-                set(it.baseSalary, entity.baseSalary.toBigDecimal())
-                set(it.netPay, entity.netPay.toBigDecimal())
-                set(it.status, entity.status.name)
-                set(it.paymentDate, entity.paymentDate)
-                set(it.createdAt, now)
-                set(it.updatedAt, now)
+                set(Payrolls.id, newId)
+                set(Payrolls.userId, entity.userId)
+                set(Payrolls.periodStart, entity.periodStart)
+                set(Payrolls.periodEnd, entity.periodEnd)
+                set(Payrolls.baseSalary, entity.baseSalary)
+                set(Payrolls.netPay, entity.netPay)
+                set(Payrolls.status, entity.status.name)
+                set(Payrolls.paymentDate, entity.paymentDate)
+                set(Payrolls.createdAt, now)
+                set(Payrolls.updatedAt, now)
             }
-            
-            // Save deductions and bonuses
+
             savePayrollDeductions(newId, entity.deductions)
             savePayrollBonuses(newId, entity.bonuses)
-            
+
             newId
         } else {
-            // Update existing payroll
             savePayrollDeductions(entity.id, entity.deductions)
             savePayrollBonuses(entity.id, entity.bonuses)
             entity.id
         }
-        
+
         return findById(payrollId)!!
     }
 
     override suspend fun delete(id: UUID): Boolean {
-        // Delete related records first
-        database.delete(PayrollDeductions) { it.payrollId eq id }
-        database.delete(PayrollBonuses) { it.payrollId eq id }
-        
-        // Then delete the payroll
-        val affectedRows = database.delete(Payrolls) { it.id eq id }
+        database.delete(PayrollDeductions) { PayrollDeductions.payrollId eq id }
+        database.delete(PayrollBonuses) { PayrollBonuses.payrollId eq id }
+
+        val affectedRows = database.delete(Payrolls) { Payrolls.id eq id }
         return affectedRows > 0
     }
 
@@ -109,7 +104,7 @@ class PayrollRepositoryImpl(private val database: Database) : PayrollRepository 
             .where { Payrolls.userId eq userId }
             .orderBy(Payrolls.periodEnd.desc())
             .map { it.toPayroll() }
-        
+
         return payrolls.map { payroll ->
             val deductions = getPayrollDeductions(payroll.id)
             val bonuses = getPayrollBonuses(payroll.id)
@@ -120,13 +115,13 @@ class PayrollRepositoryImpl(private val database: Database) : PayrollRepository 
     override suspend fun findByUserIdAndStatus(userId: UUID, status: PayrollStatus): List<Payroll> {
         val payrolls = database.from(Payrolls)
             .select()
-            .where { 
-                (Payrolls.userId eq userId) and 
-                (Payrolls.status eq status.name) 
+            .where {
+                (Payrolls.userId eq userId) and
+                        (Payrolls.status eq status.name)
             }
             .orderBy(Payrolls.periodEnd.desc())
             .map { it.toPayroll() }
-        
+
         return payrolls.map { payroll ->
             val deductions = getPayrollDeductions(payroll.id)
             val bonuses = getPayrollBonuses(payroll.id)
@@ -149,34 +144,30 @@ class PayrollRepositoryImpl(private val database: Database) : PayrollRepository 
     }
 
     private suspend fun savePayrollDeductions(payrollId: UUID, deductions: List<PayrollDeduction>) {
-        // Delete existing deductions
-        database.delete(PayrollDeductions) { it.payrollId eq payrollId }
-        
-        // Insert new deductions
+        database.delete(PayrollDeductions) { PayrollDeductions.payrollId eq payrollId }
+
         deductions.forEach { deduction ->
             database.insert(PayrollDeductions) {
-                set(it.id, UUID.randomUUID())
-                set(it.payrollId, payrollId)
-                set(it.name, deduction.name)
-                set(it.amount, deduction.amount.toBigDecimal())
-                set(it.type, deduction.type.name)
-                set(it.description, deduction.description)
+                set(PayrollDeductions.id, UUID.randomUUID())
+                set(PayrollDeductions.payrollId, payrollId)
+                set(PayrollDeductions.name, deduction.name)
+                set(PayrollDeductions.amount, deduction.amount)   // Double
+                set(PayrollDeductions.type, deduction.type.name)
+                set(PayrollDeductions.description, deduction.description)
             }
         }
     }
 
     private suspend fun savePayrollBonuses(payrollId: UUID, bonuses: List<PayrollBonus>) {
-        // Delete existing bonuses
-        database.delete(PayrollBonuses) { it.payrollId eq payrollId }
-        
-        // Insert new bonuses
+        database.delete(PayrollBonuses) { PayrollBonuses.payrollId eq payrollId }
+
         bonuses.forEach { bonus ->
             database.insert(PayrollBonuses) {
-                set(it.id, UUID.randomUUID())
-                set(it.payrollId, payrollId)
-                set(it.name, bonus.name)
-                set(it.amount, bonus.amount.toBigDecimal())
-                set(it.description, bonus.description)
+                set(PayrollBonuses.id, UUID.randomUUID())
+                set(PayrollBonuses.payrollId, payrollId)
+                set(PayrollBonuses.name, bonus.name)
+                set(PayrollBonuses.amount, bonus.amount)          // Double
+                set(PayrollBonuses.description, bonus.description)
             }
         }
     }

@@ -20,9 +20,9 @@ object Transactions : Table<Nothing>("transactions") {
     val amount = double("amount")             // Double
     val type = varchar("type")                // String
     val category = varchar("category")        // String
-    val description = varchar("description")  // String?
+    val description = varchar("description")  // String
     val date = long("date")                   // Long (millis)
-    val reference = varchar("reference")      // String?
+    val reference = varchar("reference")      // String
     val status = varchar("status")            // String
     val createdAt = long("created_at")        // Long
     val updatedAt = long("updated_at")        // Long
@@ -33,10 +33,10 @@ object Payrolls : Table<Nothing>("payrolls") {
     val userId = uuid("user_id")
     val periodStart = long("period_start")
     val periodEnd = long("period_end")
-    val baseSalary = double("base_salary")    // también Double para ser consistente
-    val netPay = double("net_pay")
+    val baseSalary = double("base_salary")    // Double
+    val netPay = double("net_pay")            // Double
     val status = varchar("status")
-    val paymentDate = long("payment_date")
+    val paymentDate = long("payment_date")    // Long (puede ser 0 si no hay pago)
     val createdAt = long("created_at")
     val updatedAt = long("updated_at")
 }
