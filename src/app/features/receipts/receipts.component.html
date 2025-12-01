@@ -1,0 +1,22 @@
+<main class="receipts">
+  <header class="receipts__header">
+    <h1>Recibos y Documentos</h1>
+    <button type="button" class="receipts__import-button">Importar Recibo</button>
+  </header>
+
+  <section class="receipts__list">
+    <!-- Aquí se renderizarán múltiples tarjetas de recibo -->
+    <app-receipt-card 
+      *ngFor="let receipt of receipts" 
+      [title]="receipt.title"
+      [date]="receipt.date"
+      [amount]="receipt.amount"
+      [provider]="receipt.provider">
+    </app-receipt-card>
+    
+    <!-- Placeholder si no hay recibos -->
+    <div *ngIf="!receipts || receipts.length === 0" class="receipts__empty">
+      <p>No hay recibos aún. Importa uno para comenzar.</p>
+    </div>
+  </section>
+</main>

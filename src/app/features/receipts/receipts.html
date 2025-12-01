@@ -1,0 +1,22 @@
+<div class="receipts-container">
+
+  <div class="top-bar">
+    <h1>Recibos y Documentos</h1>
+
+    <button class="upload-btn" (click)="uploadFile()">
+      <i class="bi bi-upload"></i>
+      Subir Archivo
+    </button>
+  </div>
+
+  <div class="list">
+    <app-receipt-card
+      *ngFor="let r of receipts"
+      [title]="r.title"
+      [date]="r.date"
+      [amount]="r.amount"
+      [provider]="r.provider">
+    </app-receipt-card>
+  </div>
+
+</div>

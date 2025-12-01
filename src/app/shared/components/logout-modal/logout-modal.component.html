@@ -1,0 +1,22 @@
+<div class="logout-modal-overlay" *ngIf="isOpen" (click)="closeModal()">
+  <div class="logout-modal" (click)="$event.stopPropagation()">
+    <div class="logout-modal__header">
+      <h2>Cerrar Sesión</h2>
+      <button class="logout-modal__close" (click)="closeModal()">✕</button>
+    </div>
+    
+    <div class="logout-modal__body">
+      <p>¿Estás seguro de que deseas cerrar sesión?</p>
+      <p class="logout-modal__user">Sesión de: <strong>{{ currentUser }}</strong></p>
+    </div>
+    
+    <div class="logout-modal__footer">
+      <button class="logout-modal__btn logout-modal__btn--cancel" (click)="closeModal()">
+        Cancelar
+      </button>
+      <button class="logout-modal__btn logout-modal__btn--confirm" (click)="confirmLogout()">
+        Cerrar Sesión
+      </button>
+    </div>
+  </div>
+</div>
