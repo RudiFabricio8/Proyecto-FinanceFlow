@@ -1,8 +1,13 @@
 package com.financeflow.infrastructure.db
 
-import org.ktorm.schema.*
-import org.ktorm.schema.unique
-import org.ktorm.schema.nullable
+import org.ktorm.dsl.*
+import org.ktorm.schema.Table
+import org.ktorm.schema.uuid
+import org.ktorm.schema.varchar
+import org.ktorm.schema.boolean
+import org.ktorm.schema.long
+import org.ktorm.schema.decimal
+import org.ktorm.schema.text
 import java.util.*
 
 object Users : Table<Nothing>("users") {

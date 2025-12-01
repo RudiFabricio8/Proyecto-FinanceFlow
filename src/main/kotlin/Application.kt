@@ -1,5 +1,6 @@
 package com.example
 
+import com.financeflow.plugins.configureHTTP
 import io.ktor.server.application.*
 
 fun main(args: Array<String>) {

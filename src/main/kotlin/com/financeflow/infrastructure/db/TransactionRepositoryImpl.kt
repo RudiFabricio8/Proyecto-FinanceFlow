@@ -6,6 +6,7 @@ import com.financeflow.domain.model.TransactionType
 import com.financeflow.domain.repository.TransactionRepository
 import org.ktorm.database.Database
 import org.ktorm.dsl.*
+import org.ktorm.dsl.sum // CORRECCIÓN: Se agregó el import explícito para la función sum()
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.*
@@ -28,7 +29,7 @@ class TransactionRepositoryImpl(private val database: Database) : TransactionRep
 
     override suspend fun save(entity: Transaction): Transaction {
         val now = System.currentTimeMillis()
-        
+
         val affectedRecords = database.update(Transactions) {
             set(it.userId, entity.userId)
             set(it.amount, entity.amount)
@@ -39,10 +40,10 @@ class TransactionRepositoryImpl(private val database: Database) : TransactionRep
             set(it.reference, entity.reference)
             set(it.status, entity.status.name)
             set(it.updatedAt, now)
-            
+
             where { it.id eq entity.id }
         }
-        
+
         return if (affectedRecords == 0) {
             // Insert new transaction
             val newTransaction = entity.copy(
@@ -50,7 +51,7 @@ class TransactionRepositoryImpl(private val database: Database) : TransactionRep
                 createdAt = now,
                 updatedAt = now
             )
-            
+
             database.insert(Transactions) {
                 set(it.id, newTransaction.id)
                 set(it.userId, newTransaction.userId)
@@ -64,7 +65,7 @@ class TransactionRepositoryImpl(private val database: Database) : TransactionRep
                 set(it.createdAt, newTransaction.createdAt)
                 set(it.updatedAt, newTransaction.updatedAt)
             }
-            
+
             newTransaction
         } else {
             entity.copy(updatedAt = now)
@@ -94,9 +95,9 @@ class TransactionRepositoryImpl(private val database: Database) : TransactionRep
     override suspend fun findByUserIdAndType(userId: UUID, type: TransactionType): List<Transaction> {
         return database.from(Transactions)
             .select()
-            .where { 
-                (Transactions.userId eq userId) and 
-                (Transactions.type eq type.name) 
+            .where {
+                (Transactions.userId eq userId) and
+                        (Transactions.type eq type.name)
             }
             .orderBy(Transactions.date.desc())
             .map { it.toTransaction() }
@@ -109,13 +110,13 @@ class TransactionRepositoryImpl(private val database: Database) : TransactionRep
     ): List<Transaction> {
         val startMillis = startDate.atStartOfDay(ZoneId.systemDefault()).toEpochSecond() * 1000
         val endMillis = endDate.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toEpochSecond() * 1000
-        
+
         return database.from(Transactions)
             .select()
-            .where { 
-                (Transactions.userId eq userId) and 
-                (Transactions.date greaterEq startMillis) and 
-                (Transactions.date less endMillis)
+            .where {
+                (Transactions.userId eq userId) and
+                        (Transactions.date greaterEq startMillis) and
+                        (Transactions.date less endMillis)
             }
             .orderBy(Transactions.date.desc())
             .map { it.toTransaction() }
@@ -141,10 +142,10 @@ class TransactionRepositoryImpl(private val database: Database) : TransactionRep
     override suspend fun getTotalAmountByUserAndType(userId: UUID, type: TransactionType): Double {
         return database.from(Transactions)
             .select(Transactions.amount.sum())
-            .where { 
-                (Transactions.userId eq userId) and 
-                (Transactions.type eq type.name) and
-                (Transactions.status eq TransactionStatus.COMPLETED.name)
+            .where {
+                (Transactions.userId eq userId) and
+                        (Transactions.type eq type.name) and
+                        (Transactions.status eq TransactionStatus.COMPLETED.name)
             }
             .map { it.getDouble(1) ?: 0.0 }
             .firstOrNull() ?: 0.0

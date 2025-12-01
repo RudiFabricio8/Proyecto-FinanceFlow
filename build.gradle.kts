@@ -32,7 +32,7 @@ application {
 
 dependencies {
     val ktorVersion = "3.3.2"
-    val ktormVersion = "3.6.0"
+    val ktormVersion = "3.6.0" // <-- REVERTIDO A 3.6.0
     val postgresqlVersion = "42.7.1"
     val hikariCpVersion = "5.0.1"
     val flywayVersion = "10.11.0"
