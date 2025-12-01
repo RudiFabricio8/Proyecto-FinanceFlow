@@ -6,6 +6,7 @@ import com.financeflow.domain.model.TransactionType
 import com.financeflow.domain.repository.TransactionRepository
 import org.ktorm.database.Database
 import org.ktorm.dsl.*
+import org.ktorm.dsl.sum
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.*
@@ -28,43 +29,41 @@ class TransactionRepositoryImpl(private val database: Database) : TransactionRep
 
     override suspend fun save(entity: Transaction): Transaction {
         val now = System.currentTimeMillis()
-        
+
         val affectedRecords = database.update(Transactions) {
-            set(it.userId, entity.userId)
-            set(it.amount, entity.amount)
-            set(it.type, entity.type.name)
-            set(it.category, entity.category)
-            set(it.description, entity.description)
-            set(it.date, entity.date)
-            set(it.reference, entity.reference)
-            set(it.status, entity.status.name)
-            set(it.updatedAt, now)
-            
-            where { it.id eq entity.id }
+            set(Transactions.userId, entity.userId)
+            set(Transactions.amount, entity.amount)
+            set(Transactions.type, entity.type.name)
+            set(Transactions.category, entity.category)
+            set(Transactions.description, entity.description)
+            set(Transactions.date, entity.date)
+            set(Transactions.reference, entity.reference)
+            set(Transactions.status, entity.status.name)
+            set(Transactions.updatedAt, now)
+            where { Transactions.id eq entity.id }
         }
-        
+
         return if (affectedRecords == 0) {
-            // Insert new transaction
             val newTransaction = entity.copy(
                 id = UUID.randomUUID(),
                 createdAt = now,
                 updatedAt = now
             )
-            
+
             database.insert(Transactions) {
-                set(it.id, newTransaction.id)
-                set(it.userId, newTransaction.userId)
-                set(it.amount, newTransaction.amount)
-                set(it.type, newTransaction.type.name)
-                set(it.category, newTransaction.category)
-                set(it.description, newTransaction.description)
-                set(it.date, newTransaction.date)
-                set(it.reference, newTransaction.reference)
-                set(it.status, newTransaction.status.name)
-                set(it.createdAt, newTransaction.createdAt)
-                set(it.updatedAt, newTransaction.updatedAt)
+                set(Transactions.id, newTransaction.id)
+                set(Transactions.userId, newTransaction.userId)
+                set(Transactions.amount, newTransaction.amount)
+                set(Transactions.type, newTransaction.type.name)
+                set(Transactions.category, newTransaction.category)
+                set(Transactions.description, newTransaction.description)
+                set(Transactions.date, newTransaction.date)
+                set(Transactions.reference, newTransaction.reference)
+                set(Transactions.status, newTransaction.status.name)
+                set(Transactions.createdAt, newTransaction.createdAt)
+                set(Transactions.updatedAt, newTransaction.updatedAt)
             }
-            
+
             newTransaction
         } else {
             entity.copy(updatedAt = now)
@@ -72,7 +71,7 @@ class TransactionRepositoryImpl(private val database: Database) : TransactionRep
     }
 
     override suspend fun delete(id: UUID): Boolean {
-        val affectedRows = database.delete(Transactions) { it.id eq id }
+        val affectedRows = database.delete(Transactions) { Transactions.id eq id }
         return affectedRows > 0
     }
 
@@ -94,9 +93,9 @@ class TransactionRepositoryImpl(private val database: Database) : TransactionRep
     override suspend fun findByUserIdAndType(userId: UUID, type: TransactionType): List<Transaction> {
         return database.from(Transactions)
             .select()
-            .where { 
-                (Transactions.userId eq userId) and 
-                (Transactions.type eq type.name) 
+            .where {
+                (Transactions.userId eq userId) and
+                        (Transactions.type eq type.name)
             }
             .orderBy(Transactions.date.desc())
             .map { it.toTransaction() }
@@ -109,13 +108,13 @@ class TransactionRepositoryImpl(private val database: Database) : TransactionRep
     ): List<Transaction> {
         val startMillis = startDate.atStartOfDay(ZoneId.systemDefault()).toEpochSecond() * 1000
         val endMillis = endDate.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toEpochSecond() * 1000
-        
+
         return database.from(Transactions)
             .select()
-            .where { 
-                (Transactions.userId eq userId) and 
-                (Transactions.date greaterEq startMillis) and 
-                (Transactions.date less endMillis)
+            .where {
+                (Transactions.userId eq userId) and
+                        (Transactions.date greaterEq startMillis) and
+                        (Transactions.date less endMillis)
             }
             .orderBy(Transactions.date.desc())
             .map { it.toTransaction() }
@@ -123,9 +122,9 @@ class TransactionRepositoryImpl(private val database: Database) : TransactionRep
 
     override suspend fun updateStatus(transactionId: UUID, status: TransactionStatus): Boolean {
         val affectedRows = database.update(Transactions) {
-            set(it.status, status.name)
-            set(it.updatedAt, System.currentTimeMillis())
-            where { it.id eq transactionId }
+            set(Transactions.status, status.name)
+            set(Transactions.updatedAt, System.currentTimeMillis())
+            where { Transactions.id eq transactionId }
         }
         return affectedRows > 0
     }
@@ -139,15 +138,18 @@ class TransactionRepositoryImpl(private val database: Database) : TransactionRep
     }
 
     override suspend fun getTotalAmountByUserAndType(userId: UUID, type: TransactionType): Double {
-        return database.from(Transactions)
-            .select(Transactions.amount.sum())
-            .where { 
-                (Transactions.userId eq userId) and 
-                (Transactions.type eq type.name) and
-                (Transactions.status eq TransactionStatus.COMPLETED.name)
+        val amountAlias = sum(Transactions.amount).aliased("total_amount")
+
+        val row = database.from(Transactions)
+            .select(amountAlias)
+            .where {
+                (Transactions.userId eq userId) and
+                        (Transactions.type eq type.name) and
+                        (Transactions.status eq TransactionStatus.COMPLETED.name)
             }
-            .map { it.getDouble(1) ?: 0.0 }
-            .firstOrNull() ?: 0.0
+            .firstOrNull()
+
+        return row?.get(amountAlias)?.toDouble() ?: 0.0
     }
 
     private fun QueryRowSet.toTransaction(): Transaction {
