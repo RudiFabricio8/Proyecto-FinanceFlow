@@ -11,12 +11,14 @@ import io.ktor.server.plugins.calllogging.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.request.path
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.koin.ktor.plugin.Koin
 import org.koin.logger.slf4jLogger
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
+import org.koin.core.module.Module
 
 private val logger = LoggerFactory.getLogger("Application")
 
@@ -55,9 +57,6 @@ fun Application.module() {
     }
 
     routing {
-        // Descomenta esto más adelante cuando Swagger esté estable
-        // swaggerUI(swaggerFile = "openapi/documentation.yaml", path = "/swagger")
-        // Aquí también puedes registrar rutas simples de prueba si lo necesitas
     }
 
     configureRouting()
@@ -68,6 +67,6 @@ fun Application.module() {
     )
 }
 
-val koinModules = listOf(
-    // agrega aquí tus módulos cuando los tengas
+val koinModules = listOf<Module>(
+
 )

@@ -1,7 +1,7 @@
 package com.financeflow.infrastructure.db
 
 import org.ktorm.schema.*
-import java.util.*
+import java.util.UUID
 
 object Users : Table<Nothing>("users") {
     val id = uuid("id").primaryKey()
@@ -15,17 +15,17 @@ object Users : Table<Nothing>("users") {
 }
 
 object Transactions : Table<Nothing>("transactions") {
-    val id = uuid("id").primaryKey()
-    val userId = uuid("user_id")
-    val amount = decimal("amount")
-    val type = varchar("type")
-    val category = varchar("category")
-    val description = varchar("description")
-    val date = long("date")
-    val reference = varchar("reference")
-    val status = varchar("status")
-    val createdAt = long("created_at")
-    val updatedAt = long("updated_at")
+    val id = uuid("id").primaryKey()          // UUID
+    val userId = uuid("user_id")              // UUID
+    val amount = double("amount")             // Double
+    val type = varchar("type")                // String
+    val category = varchar("category")        // String
+    val description = varchar("description")  // String?
+    val date = long("date")                   // Long (millis)
+    val reference = varchar("reference")      // String?
+    val status = varchar("status")            // String
+    val createdAt = long("created_at")        // Long
+    val updatedAt = long("updated_at")        // Long
 }
 
 object Payrolls : Table<Nothing>("payrolls") {
@@ -33,8 +33,8 @@ object Payrolls : Table<Nothing>("payrolls") {
     val userId = uuid("user_id")
     val periodStart = long("period_start")
     val periodEnd = long("period_end")
-    val baseSalary = decimal("base_salary")
-    val netPay = decimal("net_pay")
+    val baseSalary = double("base_salary")    // también Double para ser consistente
+    val netPay = double("net_pay")
     val status = varchar("status")
     val paymentDate = long("payment_date")
     val createdAt = long("created_at")
@@ -45,7 +45,7 @@ object PayrollDeductions : Table<Nothing>("payroll_deductions") {
     val id = uuid("id").primaryKey()
     val payrollId = uuid("payroll_id")
     val name = varchar("name")
-    val amount = decimal("amount")
+    val amount = double("amount")
     val type = varchar("type")
     val description = varchar("description")
 }
@@ -54,7 +54,7 @@ object PayrollBonuses : Table<Nothing>("payroll_bonuses") {
     val id = uuid("id").primaryKey()
     val payrollId = uuid("payroll_id")
     val name = varchar("name")
-    val amount = decimal("amount")
+    val amount = double("amount")
     val description = varchar("description")
 }
 
@@ -62,7 +62,7 @@ object Receipts : Table<Nothing>("receipts") {
     val id = uuid("id").primaryKey()
     val userId = uuid("user_id")
     val transactionId = uuid("transaction_id")
-    val amount = decimal("amount")
+    val amount = double("amount")
     val date = long("date")
     val category = varchar("category")
     val description = varchar("description")
