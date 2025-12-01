@@ -1,27 +1,22 @@
-<!-- src/app/features/receipts/receipts.html -->
 <div class="receipts-container">
-  <header class="receipts-header">
-    <div class="header-content">
-      <h1 class="receipts-title">Recibos y Documentos</h1>
-      <button class="upload-button" (click)="triggerFileUpload()">
-        <span class="material-symbols-outlined">upload_file</span>
-        <span>Subir Archivo</span>
-      </button>
-    </div>
-    <input 
-      #fileInput
-      type="file" 
-      class="file-input"
-      accept=".pdf,.jpg,.jpeg,.png"
-      (change)="onFileSelected($event)"
-      hidden
-    />
-  </header>
 
-  <div class="receipts-list">
-    <app-receipt-card 
-      *ngFor="let receipt of receipts" 
-      [receipt]="receipt">
+  <div class="top-bar">
+    <h1>Recibos y Documentos</h1>
+
+    <button class="upload-btn" (click)="uploadFile()">
+      <i class="bi bi-upload"></i>
+      Subir Archivo
+    </button>
+  </div>
+
+  <div class="list">
+    <app-receipt-card
+      *ngFor="let r of receipts"
+      [title]="r.title"
+      [date]="r.date"
+      [amount]="r.amount"
+      [provider]="r.provider">
     </app-receipt-card>
   </div>
+
 </div>
