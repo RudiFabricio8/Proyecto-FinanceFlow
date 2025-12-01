@@ -1,0 +1,23 @@
+<!-- src/app/features/receipts/components/receipt-card/receipt-card.html -->
+<div class="receipt-card" (click)="togglePreview()">
+  <div class="receipt-header">
+    <div class="icon-container">
+      <span class="material-symbols-outlined">description</span>
+    </div>
+    <div class="receipt-info">
+      <p class="receipt-title">{{ receipt.title }}</p>
+      <p class="receipt-detail">Fecha: {{ receipt.date }}</p>
+      <p class="receipt-detail">Monto: ${{ receipt.amount.toFixed(2) }}</p>
+      <p class="receipt-detail">Proveedor: {{ receipt.provider }}</p>
+    </div>
+  </div>
+
+  <div class="receipt-preview" *ngIf="isExpanded" (click)="$event.stopPropagation()">
+    <div class="preview-container">
+      <p class="preview-placeholder">[Previsualizador de Recibo - PDF]</p>
+    </div>
+    <button class="download-button" (click)="downloadPDF()">
+      Descargar PDF
+    </button>
+  </div>
+</div>

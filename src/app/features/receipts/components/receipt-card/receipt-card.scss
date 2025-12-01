@@ -1,0 +1,93 @@
+// src/app/features/receipts/components/receipt-card/receipt-card.scss
+
+.receipt-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+
+  &:hover {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.receipt-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.icon-container {
+  width: 6rem;
+  height: 6rem;
+  background-color: rgba(86, 84, 73, 0.2);
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  .material-symbols-outlined {
+    font-size: 2.25rem;
+    color: rgba(86, 84, 73, 0.7);
+  }
+}
+
+.receipt-info {
+  flex: 1;
+}
+
+.receipt-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #194007;
+  margin-bottom: 0.25rem;
+}
+
+.receipt-detail {
+  font-size: 0.875rem;
+  color: rgba(69, 70, 65, 0.7);
+  margin: 0;
+}
+
+.receipt-preview {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.preview-container {
+  background-color: #f3f4f6;
+  height: 24rem;
+  width: 100%;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+
+.preview-placeholder {
+  color: rgba(69, 70, 65, 0.5);
+  font-size: 0.875rem;
+}
+
+.download-button {
+  width: 100%;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #565449;
+  border: 1px solid rgba(86, 84, 73, 0.5);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: rgba(86, 84, 73, 0.1);
+  }
+}
