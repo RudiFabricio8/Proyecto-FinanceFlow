@@ -1,0 +1,126 @@
+// src/app/features/payroll/components/calculation-modal/calculation-modal.scss
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 0.5rem;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+
+  h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #194007;
+  }
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+
+  &:hover {
+    color: #4b5563;
+  }
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.result-section {
+  text-align: center;
+  padding: 2rem;
+  background: #f9fafb;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+
+  h4 {
+    color: #194007;
+    margin-bottom: 1rem;
+  }
+}
+
+.result-amount {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #194007;
+}
+
+.inputs-section,
+.process-section {
+  margin-bottom: 1.5rem;
+
+  h4 {
+    color: #194007;
+    margin-bottom: 1rem;
+  }
+}
+
+.input-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem;
+  border-bottom: 1px solid #e5e7eb;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.process-section ol {
+  padding-left: 1.5rem;
+  
+  li {
+    margin-bottom: 0.5rem;
+    color: #454641;
+  }
+}
+
+.modal-footer {
+  padding: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-export {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #565449;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: 500;
+
+  &:hover {
+    background: rgba(86, 84, 73, 0.9);
+  }
+}
