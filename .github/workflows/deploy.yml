@@ -1,39 +1,41 @@
-name: Deploy FinanceFlow
+# ARCHIVO DE PRUEBA PARA UN FLUJO DE TRABAJO EN GITHUB
+name: archivo de deploy para bucket s3 con angular
 
 on:
-  push:
-    branches:
-      - develop
+    push:
+        branches:
+            - main
+            - develop
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
+    deploy:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
 
-    steps:
-      - name: Checkout del código
-        uses: actions/checkout@v4
+            - name: Setup node
+              uses: actions/setup-node@v6
+              with: 
+                node-version: '22'
+                cache: npm
 
-      - name: Configurar Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
+            - name: Install dependencies
+              run: npm ci
 
-      - name: Instalar dependencias
-        run: npm ci
+            - name: Build angular
+              run: npm run build
 
-      - name: Instalar Angular CLI
-        run: npm install -g @angular/cli
+            - name: Debug - Ver estructura de carpetas
+              run: ls -R dist
 
-      - name: Generar Build de Producción
-        run: ng build --configuration production
+            - name: Configure AWS Credentials
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+                aws-region: us-east-1
 
-      - name: Configurar Credenciales AWS
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Desplegar a S3
-        run: |
-          aws s3 sync ./dist/FinanceFlow/browser s3://financeflow-frontend-v1 --delete
+            - name: Deploy to S3
+              run: aws s3 sync dist/accounting-dashboard/browser s3://amzn-static-angular --delete --exclude ".*"
