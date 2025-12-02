@@ -1,6 +1,6 @@
-export interface AnalyticsModel {
-  id?: string;
-  name?: string;
-  value?: number;
-  meta?: Record<string, any>;
+export interface AnalyticsChapter {
+  id: string;
+  title: string;
+  description: string;
+  isExpanded: boolean;
 }
