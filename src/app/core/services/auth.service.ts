@@ -1,24 +1,43 @@
-import { Injectable } from '@angular/core';
-import { Observable, of, throwError, delay } from 'rxjs';
+import { Injectable, signal } from '@angular/core';
+import { Router } from '@angular/router';
+import { Observable, of, throwError } from 'rxjs';
+import { delay } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private storageKey = 'auth_token';
+  private _isAuth = signal<boolean>(!!localStorage.getItem('ff_token'));
+  isAuthenticated = this._isAuth.asReadonly();
 
-  login(email: string, password: string): Observable<string> {
-    if (!email || !password) return throwError(() => new Error('Credenciales inválidas'));
-    const token = 'demo-token';
-    localStorage.setItem(this.storageKey, token);
-    return of(token).pipe(delay(300));
+  constructor(private router: Router) {}
+
+  login(email: string, password: string): Observable<{ token: string }> {
+    if (email && password) {
+      const token = 'ff_' + Math.random().toString(36).substr(2, 9);
+      return of({ token }).pipe(
+        delay(500),
+      );
+    }
+    return throwError(() => new Error('Email o contraseña inválidos'));
   }
 
-  register(company: string, email: string, pass: string): Observable<string> {
-    if (!company || !email || !pass) return throwError(() => new Error('Datos incompletos'));
-    const token = 'demo-token';
-    localStorage.setItem(this.storageKey, token);
-    return of(token).pipe(delay(300));
+  register(company: string, email: string, password: string): Observable<{ token: string }> {
+    if (company && email && password) {
+      const token = 'ff_' + Math.random().toString(36).substr(2, 9);
+      return of({ token }).pipe(
+        delay(500),
+      );
+    }
+    return throwError(() => new Error('Datos inválidos'));
   }
 
-  logout(): void { localStorage.removeItem(this.storageKey); }
-  isLoggedIn(): boolean { return !!localStorage.getItem(this.storageKey); }
+  setToken(token: string): void {
+    localStorage.setItem('ff_token', token);
+    this._isAuth.set(true);
+  }
+
+  logout() {
+    localStorage.removeItem('ff_token');
+    this._isAuth.set(false);
+    this.router.navigate(['/']);
+  }
 }
