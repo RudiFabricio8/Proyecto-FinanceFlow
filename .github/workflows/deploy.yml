@@ -19,6 +19,9 @@ jobs:
 
       - name: Instalar dependencias
         run: npm ci
+        
+      - name: Instalar Angular CLI
+        run: npm install -g @angular/cli
 
       - name: Generar Build de Producción
         run: ng build --configuration production
