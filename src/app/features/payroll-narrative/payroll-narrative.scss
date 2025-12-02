@@ -1,0 +1,28 @@
+.payroll-narrative {
+  padding: 2rem 3rem;
+}
+
+.payroll-narrative__header {
+  max-width: 720px;
+  margin-bottom: 2rem;
+
+  h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    color: #6b7280;
+    line-height: 1.5;
+  }
+}
+
+.payroll-narrative__placeholder {
+  padding: 2rem;
+  border-radius: 1rem;
+  background: #f3f4f6;
+  color: #6b7280;
+  text-align: center;
+}
+
+

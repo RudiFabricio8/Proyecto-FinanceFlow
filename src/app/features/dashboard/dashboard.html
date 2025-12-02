@@ -1,0 +1,23 @@
+<!-- src/app/features/dashboard/dashboard.html -->
+<div class="dashboard-container">
+  <header class="dashboard-header">
+    <h1 class="dashboard-title">Panel de control</h1>
+  </header>
+
+  <!-- Tarjetas de estadísticas -->
+  <div class="stats-grid">
+    <app-stat-card *ngFor="let card of statCards" [card]="card"></app-stat-card>
+  </div>
+
+  <!-- Gráficas -->
+  <div class="charts-grid">
+    <app-chart-placeholder title="Flujo de caja"></app-chart-placeholder>
+    <app-chart-placeholder title="Desglose de gastos"></app-chart-placeholder>
+  </div>
+
+  <!-- Tabla de transacciones -->
+  <app-transactions-table 
+    [transactions]="transactions" 
+    (exportClick)="handleExport()">
+  </app-transactions-table>
+</div>

@@ -1,17 +1,14 @@
-# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
-
-# Compiled output
+# ==== Angular / Node ====
 /dist
 /tmp
 /out-tsc
 /bazel-out
 
-# Node
 /node_modules
 npm-debug.log
 yarn-error.log
 
-# IDEs and editors
+# ==== IDEs ====
 .idea/
 .project
 .classpath
@@ -21,14 +18,10 @@ yarn-error.log
 *.sublime-workspace
 
 # Visual Studio Code
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
+.vscode/
 .history/*
 
-# Miscellaneous
+# Misc
 /.angular/cache
 .sass-cache/
 /connect.lock
@@ -38,6 +31,29 @@ testem.log
 /typings
 __screenshots__/
 
-# System files
+# System
 .DS_Store
 Thumbs.db
+
+# ==== Gradle ====
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# ==== IntelliJ ====
+*.iws
+*.iml
+*.ipr
+out/
+
+# ==== NetBeans ====
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# ==== Kotlin ====
+.kotlin/

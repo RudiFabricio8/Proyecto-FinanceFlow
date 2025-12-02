@@ -1,0 +1,18 @@
+<!-- src/app/features/payroll/components/saved-formulas/saved-formulas.html -->
+<div class="formulas-container">
+  <h3 class="formulas-title">Conceptos Guardados</h3>
+  
+  <div class="formulas-list">
+    <div *ngFor="let formula of formulas" class="formula-item">
+      <div class="formula-header">
+        <span class="formula-concept">{{ formula.concept }}</span>
+      </div>
+      <p class="formula-description">{{ formula.description }}</p>
+      <p class="formula-date">{{ formula.createdAt | date:'short' }}</p>
+    </div>
+    
+    <div *ngIf="formulas.length === 0" class="empty-state">
+      <p>No hay fórmulas guardadas</p>
+    </div>
+  </div>
+</div>

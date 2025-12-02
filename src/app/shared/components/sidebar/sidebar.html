@@ -1,0 +1,33 @@
+<aside class="sidebar" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
+  <div class="sidebar-header" [routerLink]="['/dashboard']">
+    <svg class="logo-icon" fill="none" height="32" stroke="currentColor" 
+         stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+         viewBox="0 0 24 24" width="32" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+      <path d="M2 17l10 5 10-5"></path>
+      <path d="M2 12l10 5 10-5"></path>
+    </svg>
+    <span class="sidebar-title">Contabilidad</span>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a *ngFor="let item of menuItems" 
+       [routerLink]="item.route"
+       class="menu-item"
+       [class.active]="item.active"
+       (click)="onMenuItemClick(item)">
+      <span class="material-symbols-outlined menu-icon">{{ item.icon }}</span>
+      <span class="menu-label">{{ item.label }}</span>
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <a *ngFor="let item of footerItems" 
+       [routerLink]="item.route"
+       class="menu-item"
+       (click)="onMenuItemClick(item)">
+      <span class="material-symbols-outlined menu-icon">{{ item.icon }}</span>
+      <span class="menu-label">{{ item.label }}</span>
+    </a>
+  </div>
+</aside>

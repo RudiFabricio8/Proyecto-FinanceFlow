@@ -1,0 +1,45 @@
+<div class="analytics-container">
+  <header class="analytics-header">
+    <h1 class="analytics-title">Nómina: Una Perspectiva Narrativa</h1>
+    <p class="analytics-subtitle">
+      Bienvenido, Gerente de RRHH. Este tablero ha sido diseñado para guiarte a través de los datos clave de la nómina, ofreciendo contexto y claridad en cada paso.
+    </p>
+  </header>
+
+  <div class="chapters-container">
+    <app-chapter-accordion
+      *ngFor="let chapter of chapters"
+      [chapter]="chapter"
+      (toggle)="toggleChapter($event)">
+      
+      <div class="chapter-content">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h4>Costo Total</h4>
+            <p class="stat-value">$75,000</p>
+            <p class="stat-change negative">-5%</p>
+          </div>
+          <div class="stat-card">
+            <h4>Salarios Brutos</h4>
+            <p class="stat-value">$60,000</p>
+            <p class="stat-change positive">+2%</p>
+          </div>
+          <div class="stat-card">
+            <h4>Cargas Sociales</h4>
+            <p class="stat-value">$10,000</p>
+            <p class="stat-change negative">-1%</p>
+          </div>
+          <div class="stat-card">
+            <h4>Beneficios</h4>
+            <p class="stat-value">$5,000</p>
+            <p class="stat-change">0%</p>
+          </div>
+        </div>
+
+        <div class="chart-placeholder">
+          <p>[Gráfico de Análisis Placeholder]</p>
+        </div>
+      </div>
+    </app-chapter-accordion>
+  </div>
+</div>

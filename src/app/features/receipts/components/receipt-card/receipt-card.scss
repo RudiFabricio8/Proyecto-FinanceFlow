@@ -1,0 +1,48 @@
+.receipt-card {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  gap: 20px;
+  width: 100%;
+  transition: 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+
+  .icon {
+    width: 70px;
+    height: 70px;
+    background: #f1f1f1;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    i {
+      font-size: 32px;
+      color: #6b6b6b;
+    }
+  }
+
+  .info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #244b1d;
+    }
+
+    p {
+      font-size: 15px;
+      color: #5f5f5f;
+    }
+  }
+}

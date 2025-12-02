@@ -1,0 +1,56 @@
+// src/app/features/analytics/components/chapter-accordion/chapter-accordion.scss
+
+.accordion-item {
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+
+.accordion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #f9fafb;
+  }
+}
+
+.accordion-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #194007;
+  margin: 0;
+}
+
+.accordion-icon {
+  transition: transform 0.3s;
+  color: #565449;
+
+  &.rotated {
+    transform: rotate(180deg);
+  }
+}
+
+.accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+
+  &.expanded {
+    max-height: 2000px;
+    transition: max-height 0.5s ease-in;
+  }
+}
+
+.accordion-description {
+  padding: 0 1.5rem 1.5rem;
+  color: rgba(69, 70, 65, 0.8);
+  font-size: 1.125rem;
+  line-height: 1.6;
+}

@@ -1,0 +1,40 @@
+<!-- src/app/features/payroll/components/calculation-modal/calculation-modal.html -->
+<div *ngIf="isOpen" class="modal-overlay" (click)="onClose()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Resultado del Cálculo</h3>
+      <button class="close-btn" (click)="onClose()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <div *ngIf="calculation" class="modal-body">
+      <div class="result-section">
+        <h4>Concepto: {{ calculation.concept }}</h4>
+        <p class="result-amount">${{ calculation.result.toFixed(2) }}</p>
+      </div>
+
+      <div class="inputs-section">
+        <h4>Datos Ingresados:</h4>
+        <div class="input-item" *ngFor="let input of calculation.inputs | keyvalue">
+          <span>{{ input.key }}:</span>
+          <span>${{ input.value.toFixed(2) }}</span>
+        </div>
+      </div>
+
+      <div class="process-section">
+        <h4>Proceso de Cálculo:</h4>
+        <ol>
+          <li *ngFor="let step of calculation.process">{{ step }}</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-export" (click)="onExport()">
+        <span class="material-symbols-outlined">download</span>
+        Exportar PDF
+      </button>
+    </div>
+  </div>
+</div>
