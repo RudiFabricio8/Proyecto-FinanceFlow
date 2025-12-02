@@ -1,10 +1,9 @@
 export interface Receipt {
   id: string;
-  employeeName: string;
-  employeeId: string;
-  period: string;
+  title: string;
+  date: string;
   amount: number;
-  issuedAt: Date;
-  status: 'generated' | 'downloaded' | 'pending';
+  provider: string;
+  type: 'receipt' | 'invoice' | 'bill';
   pdfUrl?: string;
 }
