@@ -1,1 +1,131 @@
-.register-placeholder { padding: 1rem; }
+@use "sass:color";
+// Register component styles
+$auth-primary: #2f6f2f;
+$auth-muted: #556b2f;
+
+@mixin auth-card() {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  padding: 24px;
+}
+
+@mixin auth-button() {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 10px 16px;
+  background: $auth-primary;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+.register {
+  @include auth-card();
+  max-width: 500px;
+  margin: 3rem auto;
+  
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: $auth-primary;
+    margin-bottom: 0.5rem;
+    text-align: center;
+  }
+  
+  .lead {
+    text-align: center;
+    color: $auth-muted;
+    margin-bottom: 2rem;
+    font-size: 1rem;
+  }
+  
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    
+    > div {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      
+      label {
+        font-weight: 600;
+        color: #333;
+        font-size: 0.95rem;
+      }
+      
+      input {
+        padding: 10px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 1rem;
+        transition: border-color 0.2s ease;
+        
+        &:focus {
+          outline: none;
+          border-color: $auth-primary;
+          box-shadow: 0 0 0 3px rgba(47, 111, 47, 0.08);
+        }
+        
+        &::placeholder {
+          color: #aaa;
+        }
+      }
+      
+      small {
+        color: #d32f2f;
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+      }
+    }
+    
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-top: 1rem;
+      
+      .btn-primary {
+        @include auth-button();
+        padding: 12px 16px;
+        font-size: 1rem;
+        
+        &:hover {
+          background: color.adjust($auth-primary, $lightness: -10%);
+        }
+        
+        &:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+      }
+      
+      .btn-ghost {
+        @extend .btn-primary;
+        background: transparent;
+        color: $auth-primary;
+        border: 2px solid $auth-primary;
+        
+        &:hover {
+          background: rgba(47, 111, 47, 0.05);
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .register {
+    margin: 2rem 1rem;
+    padding: 20px;
+    
+    h1 {
+      font-size: 1.5rem;
+    }
+  }
+}
