@@ -1,8 +1,38 @@
-<div class="login-placeholder">
-  <!-- Placeholder login form -->
-  <label>Usuario</label>
-  <input type="text" />
-  <label>Contraseña</label>
-  <input type="password" />
-  <button>Entrar</button>
-</div>
+<section class="login">
+  <h1>Login</h1>
+  <p class="lead">Access your accounting and payroll dashboard.</p>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <div>
+      <label for="email">Email address</label>
+      <input id="email" type="email" formControlName="email" placeholder="Email address" />
+      <small *ngIf="f['email'].touched && f['email'].invalid">
+        Please enter a valid email.
+      </small>
+    </div>
+
+    <div>
+      <label for="password">Password</label>
+      <input id="password" type="password" formControlName="password" placeholder="Password" />
+      <small *ngIf="f['password'].touched && f['password'].invalid">
+        Minimum 6 characters.
+      </small>
+    </div>
+
+    <div class="actions">
+      <button type="submit" class="btn-primary" [disabled]="submitting">
+        Sign in
+      </button>
+    </div>
+
+    <a href="#" style="text-align: center; color: #666; text-decoration: none; display: block; margin-top: 1rem; font-size: 0.9rem;">
+      Forgot your password?
+    </a>
+
+    <p *ngIf="errorMsg" style="color: #d32f2f; margin-top: 1rem; text-align: center;">{{ errorMsg }}</p>
+    
+    <p style="text-align: center; margin-top: 1.5rem; color: #666;">
+      Don't have an account? <a routerLink="/register" style="color: #4f46e5; text-decoration: none; font-weight: 600;">Register</a>
+    </p>
+  </form>
+</section>
