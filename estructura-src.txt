@@ -1,0 +1,31 @@
+Estructura mínima del directorio `src` para el proyecto FinanceFlow
+
+- src/index.html
+- src/main.ts
+- src/styles.scss
+- src/styles/_variables.scss
+- src/app/app.config.ts
+- src/app/app.html
+- src/app/app.routes.ts
+- src/app/app.scss
+- src/app/app.ts
+- src/app/core/
+  - guards/auth.guard.ts
+  - models/
+    - analytics.model.ts
+    - auth.model.ts
+    - payroll.model.ts
+  - services/
+    - auth.service.ts
+    - export.ts
+    - storage.service.ts
+    - validation.service.ts
+- src/app/features/auth/
+  - login/login.component.*
+  - register/register.component.*
+- src/app/features/dashboard/components/chart-placeholder/*
+- src/app/layouts/shell/shell.layout.ts
+- src/app/shared/styles/_auth.scss
+- src/app/shared/styles/_theme.scss
+
+Este archivo fue generado automáticamente como placeholder por la herramienta de scaffolding.
