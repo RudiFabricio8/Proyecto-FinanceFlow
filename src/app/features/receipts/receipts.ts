@@ -16,7 +16,7 @@ interface Receipt {
   standalone: true,
   imports: [CommonModule, ReceiptCardComponent],
 })
-export class ReceiptsComponent implements OnInit {
+export class Receipts implements OnInit {
   receipts: Receipt[] = [];
 
   ngOnInit() {
@@ -47,3 +47,4 @@ export class ReceiptsComponent implements OnInit {
     console.log('Subir archivo presionado');
   }
 }
+

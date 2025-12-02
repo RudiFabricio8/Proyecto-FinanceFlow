@@ -15,7 +15,7 @@ import { LogoutModalComponent } from '../logout-modal/logout-modal';
       (cancel)="closeModal()"
     ></app-logout-modal>
   `,
-  styleUrl: './logout-button.scss',
+  styleUrls: ['./logout-button.scss'],
 })
 export class LogoutButtonComponent {
   @Output() logout = new EventEmitter<void>();

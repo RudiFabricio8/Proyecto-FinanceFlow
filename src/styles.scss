@@ -1,0 +1,70 @@
+// src/styles.scss
+
+:root {
+  --color-primary: #565449;
+  --color-background: #FFFBF4;
+  --color-content: #454641;
+  --color-content-darker: #194007;
+  --color-accent: #565449;
+  --color-success: #194007;
+  --color-error: #dc2626;
+  --color-urgent: #EF4444;
+  --color-action: #FBBF24;
+  --color-info: #3B82F6;
+  --color-reminder: #9CA3AF;
+  --primary-color: #5c5c50;
+  --primary-text-color: #2f2f28;
+  --secondary-text-color: #555;
+  --card-bg-color: #ffffff;
+  --border-color: #e8e2d9;
+  --primary-text-color: #333;
+  --card-bg-color: #fff;
+  --secondary-text-color: #888;
+  --border-color: #ccc;
+  --button-bg-color: #007bff;
+  --font-family: 'Arial', sans-serif;
+}
+
+// Reset y estilos base
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  color: var(--color-content-darker);
+  background-color: var(--color-background);
+  line-height: 1.5;
+}
+
+// Estilos de Material Symbols
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+}
+
+// Utilidades
+.text-right {
+  text-align: right;
+}
+
+.positive {
+  color: var(--color-success);
+}
+
+.negative {
+  color: var(--color-error);
+}

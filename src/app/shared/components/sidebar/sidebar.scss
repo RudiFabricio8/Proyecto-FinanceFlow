@@ -1,0 +1,130 @@
+// src/app/shared/components/sidebar/sidebar.scss
+
+.sidebar {
+  background-color: rgba(86, 84, 73, 0.05);
+  width: 5rem;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1rem;
+  transition: width 0.3s ease-in-out;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  overflow: hidden;
+
+  &:hover {
+    width: 18rem;
+    width: 20rem;
+
+    ~ .main-content {
+      margin-left: 18rem;
+    }
+
+    .menu-label,
+    .sidebar-title {
+      display: block;
+      opacity: 1;
+    }
+  }
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 3rem;
+  padding-left: 0.5rem;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.logo-icon {
+  color: #565449;
+  flex-shrink: 0;
+}
+
+.sidebar-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #454641;
+  white-space: nowrap;
+  overflow: hidden;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(86, 84, 73, 0.3);
+    border-radius: 2px;
+  }
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  color: #454641;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  flex-shrink: 0;
+
+  &:hover {
+    background-color: rgba(86, 84, 73, 0.2);
+  }
+
+  &.active {
+    background-color: rgba(86, 84, 73, 0.1);
+    color: #565449;
+  }
+}
+
+.menu-icon {
+  flex-shrink: 0;
+}
+
+.menu-label {
+  font-weight: 500;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  white-space: normal;
+  line-height: 1.2;
+}
+
+.sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(86, 84, 73, 0.2);
+  flex-shrink: 0;
+  margin-top: 1rem;
+}

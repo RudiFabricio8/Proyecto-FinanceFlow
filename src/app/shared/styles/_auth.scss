@@ -1,0 +1,32 @@
+/* src/app/shared/styles/_auth.scss */
+:root {
+  --primary-text-color: #333;
+  --card-bg-color: #fff;
+  --secondary-text-color: #888;
+  --border-color: #ccc;
+  --button-bg-color: #007bff;
+  --font-family: 'Arial', sans-serif;
+}
+
+$auth-primary: #4f46e5;
+$auth-muted: #6b7280;
+
+@mixin auth-card() {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  padding: 24px;
+}
+
+@mixin auth-button() {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 10px 16px;
+  background: $auth-primary;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
