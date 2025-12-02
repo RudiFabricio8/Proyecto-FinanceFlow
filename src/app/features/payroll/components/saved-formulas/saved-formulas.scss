@@ -1,0 +1,56 @@
+// src/app/features/payroll/components/saved-formulas/saved-formulas.scss
+
+.formulas-container {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.formulas-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #194007;
+  margin-bottom: 1rem;
+}
+
+.formulas-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.formula-item {
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  background: #f9fafb;
+}
+
+.formula-header {
+  margin-bottom: 0.5rem;
+}
+
+.formula-concept {
+  font-weight: 600;
+  color: #194007;
+}
+
+.formula-description {
+  color: #454641;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.formula-date {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.empty-state {
+  text-align: center;
+  color: #9ca3af;
+  padding: 2rem;
+}

@@ -1,0 +1,34 @@
+<!-- src/app/features/payroll/payroll.html -->
+<div class="payroll-container">
+  <header class="payroll-header">
+    <h1 class="payroll-title">Gestión de Nómina</h1>
+    <p class="payroll-subtitle">Fórmulas y Reglas - Configuración Técnica</p>
+  </header>
+
+  <div class="content-grid">
+    <div class="calculator-section">
+      <app-formula-calculator
+        (saveFormula)="onSaveFormula($event)"
+        (calculate)="onCalculate($event)">
+      </app-formula-calculator>
+    </div>
+
+    <div class="formulas-section">
+      <app-saved-formulas [formulas]="formulas"></app-saved-formulas>
+    </div>
+  </div>
+
+  <div class="periods-section">
+    <app-payroll-periods-table
+      [periods]="periods"
+      (exportData)="onExportPeriods()">
+    </app-payroll-periods-table>
+  </div>
+
+  <app-calculation-modal
+    [calculation]="currentCalculation"
+    [isOpen]="showModal"
+    (close)="onCloseModal()"
+    (exportPdf)="onExportPdf($event)">
+  </app-calculation-modal>
+</div>

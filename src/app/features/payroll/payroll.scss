@@ -1,0 +1,40 @@
+// src/app/features/payroll/payroll.scss
+
+.payroll-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.payroll-header {
+  margin-bottom: 2rem;
+}
+
+.payroll-title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #194007;
+}
+
+.payroll-subtitle {
+  font-size: 1.25rem;
+  color: rgba(69, 70, 65, 0.8);
+  margin-top: 0.5rem;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+
+  @media (min-width: 1024px) {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+.calculator-section,
+.formulas-section,
+.periods-section {
+  width: 100%;
+}
