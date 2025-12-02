@@ -1,0 +1,36 @@
+<!-- src/app/features/payroll/components/payroll-periods-table/payroll-periods-table.html -->
+<div class="table-container">
+  <div class="table-header">
+    <h3>Períodos de Nómina</h3>
+    <button class="btn-export" (click)="onExport()">Exportar (Excel/PDF)</button>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="periods-table">
+      <thead>
+        <tr>
+          <th>Período</th>
+          <th>Monto Total</th>
+          <th># Empleados</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let period of periods">
+          <td>{{ period.period }}</td>
+          <td class="amount">${{ period.totalAmount.toFixed(2) }}</td>
+          <td>{{ period.employees }}</td>
+          <td>
+            <span class="status-badge" [ngClass]="getStatusClass(period.status)">
+              {{ getStatusLabel(period.status) }}
+            </span>
+          </td>
+          <td>
+            <button class="btn-details">Ver Detalles</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
