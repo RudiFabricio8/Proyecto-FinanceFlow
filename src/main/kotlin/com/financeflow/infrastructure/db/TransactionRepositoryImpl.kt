@@ -1,76 +1,103 @@
 package com.financeflow.infrastructure.db
 
-import com.financeflow.domain.model.Transaction // 🚨 Nuevo modelo (Asumido)
-import com.financeflow.domain.repository.TransactionRepository // 🚨 Nuevo repositorio
+import com.financeflow.domain.model.Transaction
+import com.financeflow.domain.model.TransactionStatus
+import com.financeflow.domain.model.TransactionType
+import com.financeflow.domain.repository.TransactionRepository
 import org.ktorm.database.Database
 import org.ktorm.dsl.*
 import org.ktorm.dsl.QueryRowSet
+import java.time.LocalDate
+import java.time.ZoneId
 import java.util.UUID
+import java.math.BigDecimal
 
 class TransactionRepositoryImpl(private val database: Database) : TransactionRepository {
 
-    // Helper para conversión de UUID (del modelo) a Long (de la BD)
     private fun UUID.toLongId(): Long = try {
         this.toString().split("-").first().toLong(16)
     } catch (e: Exception) {
         0L
     }
 
-    // Helper para simular un UUID a partir de un Long de la BD
     private fun Long.toUuid(): UUID = UUID.nameUUIDFromBytes(this.toString().toByteArray())
 
-    // Usamos PaymentHistory como la tabla de transacciones según tu esquema SQL
-    override suspend fun findAll(): List<Transaction> {
+    override suspend fun findByUserId(userId: UUID): List<Transaction> {
+        val longUserId = userId.toLongId()
         return database.from(PaymentHistory)
             .select()
+            .where { PaymentHistory.employeeId eq longUserId }
             .map { it.toTransaction() }
     }
 
-    override suspend fun findById(id: UUID): Transaction? {
-        val longId = id.toLongId()
+    override suspend fun findByUserIdAndType(userId: UUID, type: TransactionType): List<Transaction> {
+        val longUserId = userId.toLongId()
         return database.from(PaymentHistory)
             .select()
-            .where { PaymentHistory.id eq longId }
+            .where {
+                (PaymentHistory.employeeId eq longUserId) and
+                (PaymentHistory.paymentStatus eq type.name)
+            }
             .map { it.toTransaction() }
-            .firstOrNull()
     }
 
-    // save, update, delete y existsById deben ser implementados aquí.
-    // Usaremos implementaciones básicas (solo para compilación)
-
-    override suspend fun save(entity: Transaction): Transaction {
-        // Implementación básica para compilar
-        return entity
-    }
-
-    override suspend fun delete(id: UUID): Boolean {
-        val longId = id.toLongId()
-        val affectedRows = database.delete(PaymentHistory) { PaymentHistory.id eq longId }
-        return affectedRows > 0
-    }
-
-    override suspend fun existsById(id: UUID): Boolean {
-        val longId = id.toLongId()
+    override suspend fun findByUserIdAndDateRange(userId: UUID, startDate: LocalDate, endDate: LocalDate): List<Transaction> {
+        val longUserId = userId.toLongId()
         return database.from(PaymentHistory)
-            .select(PaymentHistory.id)
-            .where { PaymentHistory.id eq longId }
-            .totalRecords > 0
+            .select()
+            .where {
+                (PaymentHistory.employeeId eq longUserId) and
+                (PaymentHistory.paymentDate greaterEq startDate) and
+                (PaymentHistory.paymentDate lessEq endDate)
+            }
+            .map { it.toTransaction() }
     }
 
-    // Mapeo básico a Transaction (asumiendo que Transaction se parece a PaymentHistory)
+    override suspend fun updateStatus(transactionId: UUID, status: TransactionStatus): Boolean {
+        val longId = transactionId.toLongId()
+        val affected = database.update(PaymentHistory) {
+            set(it.paymentStatus, status.name)
+            where { it.id eq longId }
+        }
+        return affected > 0
+    }
+
+    override suspend fun findByStatus(status: TransactionStatus): List<Transaction> {
+        return database.from(PaymentHistory)
+            .select()
+            .where { PaymentHistory.paymentStatus eq status.name }
+            .map { it.toTransaction() }
+    }
+
+    override suspend fun getTotalAmountByUserAndType(userId: UUID, type: TransactionType): Double {
+        val longUserId = userId.toLongId()
+        return database.from(PaymentHistory)
+            .select(sum(PaymentHistory.paymentAmount))
+            .where {
+                (PaymentHistory.employeeId eq longUserId) and
+                (PaymentHistory.paymentStatus eq type.name)
+            }
+            .map { it.getDouble(1) ?: 0.0 }
+            .firstOrNull() ?: 0.0
+    }
+
     private fun QueryRowSet.toTransaction(): Transaction {
-        val longId = this[PaymentHistory.id]!!
-
-        // 🚨 Advertencia: Este mapeo requiere que el modelo Transaction
-        // tenga propiedades que coincidan con PaymentHistory.
-
+        val paymentDate = this[PaymentHistory.paymentDate]!!
+        val dateTimestamp = paymentDate.toLocalDate()
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+        
         return Transaction(
-            id = longId.toUuid(),
-            // Asumiendo que PaymentHistory.employeeId mapea a un campo userId/employeeId en Transaction
-            employeeId = this[PaymentHistory.employeeId]!!.toUuid(),
+            id = this[PaymentHistory.id]!!.toUuid(),
+            userId = this[PaymentHistory.employeeId]!!.toUuid(),
             amount = this[PaymentHistory.paymentAmount]!!.toDouble(),
-            date = this[PaymentHistory.paymentDate]!!.time, // Mapea SQL Date a Long (timestamp)
-            status = this[PaymentHistory.paymentStatus]!!,
+            type = TransactionType.INCOME, // Por defecto, ya que payment_history es para pagos
+            category = "PAYROLL",
+            description = "Payment from payroll",
+            date = dateTimestamp,
+            reference = null,
+            status = TransactionStatus.valueOf(this[PaymentHistory.paymentStatus]!!),
             createdAt = this[PaymentHistory.createdAt]!!
         )
     }

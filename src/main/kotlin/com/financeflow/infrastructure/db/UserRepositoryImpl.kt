@@ -1,12 +1,14 @@
 package com.financeflow.infrastructure.db
 
 import com.financeflow.domain.model.User
+import com.financeflow.domain.model.UserRole
 import com.financeflow.domain.repository.UserRepository
 import org.ktorm.database.Database
 import org.ktorm.dsl.*
 import org.ktorm.dsl.QueryRowSet
 import org.mindrot.jbcrypt.BCrypt
 import java.util.*
+
 
 class UserRepositoryImpl(private val database: Database) : UserRepository {
 
@@ -127,8 +129,7 @@ class UserRepositoryImpl(private val database: Database) : UserRepository {
             fullName = this[Users.fullName]!!,
             email = this[Users.email]!!,
             password = this[Users.passwordHash]!!,
-            // 🚨 SOLUCIÓN FINAL: Usar el enum anidado dentro de la clase User
-            role = User.Role.valueOf(this[Users.role]!!),
+            role = UserRole.valueOf(this[Users.role]!!),
             isActive = this[Users.isActive]!!,
             createdAt = this[Users.createdAt]!!
         )

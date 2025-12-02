@@ -32,6 +32,7 @@ fun main() {
 }
 
 fun Application.module() {
+    com.financeflow.infrastructure.db.DatabaseConfig.init(environment.config)    
     install(Koin) {
         slf4jLogger()
         modules(koinModules)

@@ -8,18 +8,17 @@ import com.financeflow.domain.repository.PayrollRepository
 import org.ktorm.database.Database
 import org.ktorm.dsl.*
 import org.ktorm.dsl.QueryRowSet
+import java.math.BigDecimal
 import java.util.UUID
 
 class PayrollRepositoryImpl(private val database: Database) : PayrollRepository {
 
-    // Helper para conversión de UUID (del modelo) a Long (de la BD)
     private fun UUID.toLongId(): Long = try {
         this.toString().split("-").first().toLong(16)
     } catch (e: Exception) {
         0L
     }
 
-    // Helper para simular un UUID a partir de un Long de la BD
     private fun Long.toUuid(): UUID = UUID.nameUUIDFromBytes(this.toString().toByteArray())
 
     override suspend fun findAll(): List<Payroll> {
@@ -52,16 +51,19 @@ class PayrollRepositoryImpl(private val database: Database) : PayrollRepository 
         val now = System.currentTimeMillis()
         val longId = entity.id.toLongId()
 
-        val employeeId = 0L
-        val payrollPeriodId = 0L
+        val employeeId = entity.userId.toLongId()
+        val payrollPeriodId = 0L // Ajusta si tienes un ID real
+
+        val grossSalary = BigDecimal.valueOf(entity.baseSalary)
+        val netSalary = BigDecimal.valueOf(entity.netPay)
+        val totalDeductions = entity.deductions.fold(BigDecimal.ZERO) { acc, d -> acc + BigDecimal.valueOf(d.amount) }
 
         val affectedRecords = database.update(Payslips) {
             set(it.employeeId, employeeId)
             set(it.payrollPeriodId, payrollPeriodId)
-            set(it.grossSalary, entity.baseSalary)
-            set(it.totalDeductions, 0.0)
-            set(it.netSalary, entity.netPay)
-            // 🚨 Corrección de tipo: asignando Long a la columna 'long'
+            set(it.grossSalary, grossSalary)
+            set(it.totalDeductions, totalDeductions)
+            set(it.netSalary, netSalary)
             set(it.generatedAt, now)
             where { Payslips.id eq longId }
         }
@@ -72,16 +74,14 @@ class PayrollRepositoryImpl(private val database: Database) : PayrollRepository 
             val newLongId = database.insertAndGenerateKey(Payslips) {
                 set(it.employeeId, employeeId)
                 set(it.payrollPeriodId, payrollPeriodId)
-                set(it.grossSalary, entity.baseSalary)
-                set(it.totalDeductions, 0.0)
-                set(it.netSalary, entity.netPay)
-                // 🚨 Corrección de tipo: asignando Long a la columna 'long'
+                set(it.grossSalary, grossSalary)
+                set(it.totalDeductions, totalDeductions)
+                set(it.netSalary, netSalary)
                 set(it.generatedAt, now)
             } as Long
 
             payrollId = newLongId.toUuid()
             savePayslipDeductions(payrollId, entity.deductions)
-
         } else {
             payrollId = entity.id
             savePayslipDeductions(entity.id, entity.deductions)
@@ -92,7 +92,6 @@ class PayrollRepositoryImpl(private val database: Database) : PayrollRepository 
 
     override suspend fun delete(id: UUID): Boolean {
         val longId = id.toLongId()
-
         database.delete(PayslipDeductions) { PayslipDeductions.payslipId eq longId }
         val affectedRows = database.delete(Payslips) { Payslips.id eq longId }
         return affectedRows > 0
@@ -106,32 +105,50 @@ class PayrollRepositoryImpl(private val database: Database) : PayrollRepository 
             .totalRecords > 0
     }
 
-    override suspend fun findByUserId(userId: UUID): List<Payroll> = emptyList()
+    override suspend fun findByUserId(userId: UUID): List<Payroll> {
+        val employeeId = userId.toLongId()
+        val payrolls = database.from(Payslips)
+            .select()
+            .where { Payslips.employeeId eq employeeId }
+            .map { it.toPayroll() }
+        
+        return payrolls.map { payroll ->
+            val deductions = getPayslipDeductions(payroll.id)
+            payroll.copy(deductions = deductions, bonuses = emptyList())
+        }
+    }
 
-    override suspend fun findByUserIdAndStatus(userId: UUID, status: PayrollStatus): List<Payroll> = emptyList()
-
-
-    // --- Funciones Auxiliares ---
+    override suspend fun findByUserIdAndStatus(userId: UUID, status: PayrollStatus): List<Payroll> {
+        return findByUserId(userId).filter { it.status == status }
+    }
 
     private fun getPayslipDeductions(payslipId: UUID): List<PayrollDeduction> {
         val longId = payslipId.toLongId()
 
         return database.from(PayslipDeductions)
+            .leftJoin(DeductionTypes, on = PayslipDeductions.deductionTypeId eq DeductionTypes.id)
             .select()
             .where { PayslipDeductions.payslipId eq longId }
-            .map { it.toPayslipDeduction() }
+            .map {
+                PayrollDeduction(
+                    id = it[PayslipDeductions.id]!!.toUuid(),
+                    name = it[DeductionTypes.name] ?: "Desconocida",
+                    amount = it[PayslipDeductions.amount]!!.toDouble(),
+                    type = DeductionType.OTHER,
+                    description = null
+                )
+            }
     }
 
     private suspend fun savePayslipDeductions(payslipId: UUID, deductions: List<PayrollDeduction>) {
         val longId = payslipId.toLongId()
-
         database.delete(PayslipDeductions) { PayslipDeductions.payslipId eq longId }
 
         deductions.forEach { deduction ->
             database.insert(PayslipDeductions) {
                 set(it.payslipId, longId)
-                set(it.deductionTypeId, 0L)
-                set(it.amount, deduction.amount)
+                set(it.deductionTypeId, 0L) // Ajusta si tienes el ID real
+                set(it.amount, BigDecimal.valueOf(deduction.amount))
             }
         }
     }
@@ -142,28 +159,17 @@ class PayrollRepositoryImpl(private val database: Database) : PayrollRepository 
 
         return Payroll(
             id = payslipId,
-            userId = longId.toUuid(),
+            userId = this[Payslips.employeeId]!!.toUuid(),
             periodStart = 0L,
             periodEnd = 0L,
             baseSalary = this[Payslips.grossSalary]!!.toDouble(),
-            deductions = getPayslipDeductions(payslipId),
+            deductions = emptyList(),
             bonuses = emptyList(),
-            // 🚨 SOLUCIÓN FINAL: Usar la referencia completa del enum
-            status = com.financeflow.domain.model.PayrollStatus.COMPLETED,
+            status = PayrollStatus.COMPLETED,
             netPay = this[Payslips.netSalary]!!.toDouble(),
-            paymentDate = 0L,
-            createdAt = this[Payslips.generatedAt]!!, // Mapeado a Long
-            updatedAt = this[Payslips.generatedAt]!!  // Mapeado a Long
-        )
-    }
-
-    private fun QueryRowSet.toPayslipDeduction(): PayrollDeduction {
-        return PayrollDeduction(
-            id = this[PayslipDeductions.id]!!.toUuid(),
-            name = "Deducción Desconocida",
-            amount = this[PayslipDeductions.amount]!!.toDouble(),
-            type = DeductionType.OTHER,
-            description = null
+            paymentDate = null,
+            createdAt = this[Payslips.generatedAt]!!,
+            updatedAt = this[Payslips.generatedAt]!!
         )
     }
 }
