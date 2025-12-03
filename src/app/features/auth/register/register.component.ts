@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { AuthResponse } from '../../../core/models/auth.model';
 
 function matchPasswords(ctrl: AbstractControl): ValidationErrors | null {
   const p = ctrl.get('password')?.value;
@@ -29,7 +30,8 @@ export class RegisterComponent implements OnInit {
 
   ngOnInit(): void {
     this.form = this.fb.group({
-      company: ['', [Validators.required, Validators.minLength(2)]],
+      organizationName: ['', [Validators.required, Validators.minLength(2)]],
+      fullName: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirm: ['', [Validators.required]],
@@ -47,14 +49,14 @@ export class RegisterComponent implements OnInit {
       return;
     }
 
-    const { company, email, password } = this.form.value;
+    const { organizationName, fullName, email, password } = this.form.value;
     this.submitting = true;
 
-    this.auth.register(company!, email!, password!).subscribe({
-      next: (res: { token: string }) => {
-        this.auth.setToken(res.token);
+    this.auth.register(organizationName!, email!, password!, fullName!).subscribe({
+      next: (res: AuthResponse) => {
+        // Token is automatically handled by auth.service.ts
         this.submitting = false;
-        this.router.navigate(['/dashboard']); // redirige al panel
+        this.router.navigate(['/dashboard']);
       },
       error: (err: Error) => {
         this.submitting = false;

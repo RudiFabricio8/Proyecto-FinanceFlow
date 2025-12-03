@@ -1,7 +1,7 @@
 // src/app/features/payroll/components/payroll-periods-table/payroll-periods-table.ts
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { PayrollPeriodData } from '../../../../core/models/payroll.model';
+import { PayrollPeriod } from '../../../../core/models/payroll.model';
 
 @Component({
   selector: 'app-payroll-periods-table',
@@ -11,25 +11,23 @@ import { PayrollPeriodData } from '../../../../core/models/payroll.model';
   styleUrl: './payroll-periods-table.scss'
 })
 export class PayrollPeriodsTableComponent {
-  @Input() periods: PayrollPeriodData[] = [];
+  @Input() periods: PayrollPeriod[] = [];
   @Output() exportData = new EventEmitter<void>();
 
   getStatusClass(status: string): string {
     const classes: { [key: string]: string } = {
-      'draft': 'status-draft',
-      'pending': 'status-pending',
-      'approved': 'status-approved',
-      'processed': 'status-processed'
+      'DRAFT': 'status-draft',
+      'PROCESSED': 'status-processed',
+      'PAUSED': 'status-paused'
     };
     return classes[status] || '';
   }
 
   getStatusLabel(status: string): string {
     const labels: { [key: string]: string } = {
-      'draft': 'Borrador',
-      'pending': 'Pendiente',
-      'approved': 'Aprobado',
-      'processed': 'Procesado'
+      'DRAFT': 'Borrador',
+      'PROCESSED': 'Procesado',
+      'PAUSED': 'Pausado'
     };
     return labels[status] || status;
   }

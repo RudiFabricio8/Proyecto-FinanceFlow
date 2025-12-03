@@ -2,7 +2,6 @@
 import { Component, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PayrollFormula } from '../../../../core/models/payroll.model';
 
 @Component({
   selector: 'app-formula-calculator',
@@ -12,7 +11,7 @@ import { PayrollFormula } from '../../../../core/models/payroll.model';
   styleUrl: './formula-calculator.scss'
 })
 export class FormulaCalculatorComponent {
-  @Output() saveFormula = new EventEmitter<PayrollFormula>();
+  @Output() saveFormula = new EventEmitter<any>();
   @Output() calculate = new EventEmitter<any>();
 
   concept = '';
@@ -28,15 +27,13 @@ export class FormulaCalculatorComponent {
       return;
     }
 
-    const formula: PayrollFormula = {
-      id: Date.now().toString(),
+    const formulaData = {
       concept: this.concept,
       description: this.description,
-      formula: this.generateFormula(),
-      createdAt: new Date().toISOString()
+      formula: this.generateFormula()
     };
 
-    this.saveFormula.emit(formula);
+    this.saveFormula.emit(formulaData);
     this.clearForm();
   }
 

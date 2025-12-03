@@ -1,9 +1,10 @@
 import { Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap, map, catchError, throwError } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { StorageService } from './storage.service';
+import { AuthResponse, User } from '../models/auth.model';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -19,28 +20,47 @@ export class AuthService {
     this._isAuth.set(!!this.storageService.getUser()?.isAuthenticated);
   }
 
-  login(email: string, password: string): Observable<{ token: string }> {
-    return this.http.post<{ token: string }>(`${this.apiUrl}/login`, { email, password }).pipe(
+  login(email: string, password: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, { email, password }).pipe(
       tap(response => {
         this.setToken(response.token);
-        // We need to decode the token or fetch user details to save them.
-        // For now, we'll save the email from the request.
-        this.storageService.saveUser({ email, isAuthenticated: true });
+        // Store user and organization data from backend response
+        const user: User = {
+          id: response.user.id,
+          email: response.user.email,
+          fullName: response.user.fullName,
+          role: response.user.role,
+          organizationId: response.organization.id,
+          organizationName: response.organization.name,
+          isAuthenticated: true
+        };
+        this.storageService.saveUser(user);
+        this._isAuth.set(true);
       })
     );
   }
 
-  register(company: string, email: string, password: string, fullName?: string, role?: string): Observable<{ token: string }> {
-    return this.http.post<{ token: string }>(`${this.apiUrl}/register`, { 
-      companyName: company, 
+  register(organizationName: string, email: string, password: string, fullName: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, { 
+      organizationName, 
       email, 
       password,
-      fullName,
-      role
+      fullName
     }).pipe(
       tap(response => {
         this.setToken(response.token);
-        this.storageService.saveUser({ email, companyName: company, fullName, role, isAuthenticated: true });
+        // Store user and organization data from backend response
+        const user: User = {
+          id: response.user.id,
+          email: response.user.email,
+          fullName: response.user.fullName,
+          role: response.user.role,
+          organizationId: response.organization.id,
+          organizationName: response.organization.name,
+          isAuthenticated: true
+        };
+        this.storageService.saveUser(user);
+        this._isAuth.set(true);
       })
     );
   }

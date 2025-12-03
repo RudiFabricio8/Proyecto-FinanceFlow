@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { AuthResponse } from '../../../core/models/auth.model';
 
 @Component({
   selector: 'app-login',
@@ -46,8 +47,8 @@ export class LoginComponent implements OnInit {
     const { email, password } = this.form.value;
 
     this.auth.login(email!, password!).subscribe({
-      next: (res: { token: string }) => {
-        this.auth.setToken(res.token);
+      next: (res: AuthResponse) => {
+        // Token is automatically handled by auth.service.ts
         this.submitting = false;
         this.router.navigate(['/dashboard']);
       },

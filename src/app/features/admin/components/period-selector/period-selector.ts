@@ -13,6 +13,7 @@ import { PeriodItemComponent } from '../period-item/period-item';
 })
 export class PeriodSelectorComponent {
   @Input() periods: PayrollPeriod[] = [];
+  @Input() selectedPeriodId: string = '';
   @Output() periodSelected = new EventEmitter<PayrollPeriod>();
 
   onPeriodSelect(period: PayrollPeriod): void {

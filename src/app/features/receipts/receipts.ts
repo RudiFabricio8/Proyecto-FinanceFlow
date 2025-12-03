@@ -1,50 +1,62 @@
+// src/app/features/receipts/receipts.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReceiptCardComponent } from './components/receipt-card/receipt-card';
-
-interface Receipt {
-  title: string;
-  date: string;
-  amount: string;
-  provider: string;
-}
+import { DocumentsService } from '../../core/services/documents.service';
+import { Document as AppDocument } from '../../core/models/document.model';
 
 @Component({
   selector: 'app-receipts',
-  templateUrl: './receipts.component.html',
-  styleUrls: ['./receipts.component.scss'],
+  templateUrl: './receipts.html',
+  styleUrls: ['./receipts.scss'],
   standalone: true,
   imports: [CommonModule, ReceiptCardComponent],
 })
 export class Receipts implements OnInit {
-  receipts: Receipt[] = [];
+  documents: AppDocument[] = [];
+  loading = false;
+
+  constructor(private documentsService: DocumentsService) {}
 
   ngOnInit() {
-    // Datos de ejemplo para mostrar en las tarjetas
-    this.receipts = [
-      {
-        title: 'Recibo de Compra - Supermercado A',
-        date: '26 de Julio, 2024',
-        amount: '$125.50',
-        provider: 'Supermercado A',
-      },
-      {
-        title: 'Factura de Servicios - Electricidad',
-        date: '20 de Julio, 2024',
-        amount: '$89.75',
-        provider: 'Empresa Eléctrica XYZ',
-      },
-      {
-        title: 'Recibo de Caja - Restaurante El Sabor',
-        date: '15 de Julio, 2024',
-        amount: '$45.00',
-        provider: 'Restaurante El Sabor',
-      },
-    ];
+    this.loadDocuments();
   }
 
-  uploadFile() {
-    console.log('Subir archivo presionado');
+  loadDocuments() {
+    this.loading = true;
+    this.documentsService.listDocuments().subscribe({
+      next: (docs) => {
+        this.documents = docs;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error loading documents', err);
+        this.loading = false;
+      }
+    });
+  }
+
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      this.loading = true;
+      this.documentsService.uploadDocument({
+        file: file,
+        type: 'PAYMENT_PROOF'
+      }).subscribe({
+        next: () => {
+          this.loadDocuments();
+        },
+        error: (err) => {
+          console.error('Error uploading document', err);
+          this.loading = false;
+        }
+      });
+    }
+  }
+
+  triggerFileInput() {
+    document.getElementById('fileInput')?.click();
   }
 }
 

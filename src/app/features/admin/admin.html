@@ -1,29 +1,29 @@
-<!-- src/app/features/admin/admin.html -->
 <div class="admin-container">
-  <header class="admin-header">
-    <h1 class="admin-title">Administración y Configuración</h1>
-    <p class="admin-description">Auditoría y configuración de estados de cumplimiento de nóminas.</p>
-  </header>
+  <div class="header">
+    <h1>Administración de Nómina</h1>
+    <p>Gestión de cumplimiento y reportes</p>
+  </div>
 
-  <div class="admin-content">
-    <h2 class="content-title">Auditoría de Cumplimiento de Nóminas</h2>
+  <div class="content-grid">
+    <div class="sidebar">
+      <app-period-selector
+        [periods]="periods"
+        [selectedPeriodId]="selectedPeriod?.id || ''"
+        (periodSelected)="onPeriodSelected($event)">
+      </app-period-selector>
+    </div>
+
+    <div class="main-section" *ngIf="selectedPeriod">
+      <app-compliance-table
+        [records]="dailyRecords"
+        [selectedPeriod]="selectedPeriod.month + ' ' + selectedPeriod.year"
+        (statusChange)="onStatusChange($event)"
+        (export)="onExport()">
+      </app-compliance-table>
+    </div>
     
-    <div class="content-grid">
-      <div class="sidebar-section">
-        <app-period-selector
-          [periods]="periods"
-          (periodSelected)="onPeriodSelected($event)">
-        </app-period-selector>
-      </div>
-
-      <div class="main-section">
-        <app-compliance-table
-          [records]="dailyRecords"
-          [selectedPeriod]="selectedPeriod.month + ' ' + selectedPeriod.year"
-          (statusChange)="onStatusChange($event)"
-          (export)="onExport()">
-        </app-compliance-table>
-      </div>
+    <div class="main-section" *ngIf="!selectedPeriod">
+      <p class="no-selection">Seleccione un período para ver los detalles.</p>
     </div>
   </div>
-</div> 
+</div>
