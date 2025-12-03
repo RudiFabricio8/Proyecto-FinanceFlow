@@ -18,11 +18,11 @@
       </thead>
       <tbody>
         <tr *ngFor="let transaction of transactions">
-          <td>{{ transaction.date }}</td>
+          <td>{{ transaction.date | date:'dd/MM/yyyy' }}</td>
           <td>{{ transaction.description }}</td>
           <td>{{ transaction.category }}</td>
-          <td class="text-right" [ngClass]="transaction.isPositive ? 'positive' : 'negative'">
-            {{ formatAmount(transaction.amount, transaction.isPositive) }}
+          <td class="text-right" [ngClass]="isPositive(transaction.type) ? 'positive' : 'negative'">
+            {{ formatAmount(transaction.amount, transaction.type) }}
           </td>
         </tr>
       </tbody>

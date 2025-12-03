@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { ExportService } from '../../core/services/export';
 import { StatCard } from '../../core/models/stat-card.model';
 import { Transaction } from '../../core/models/transaction.model';
+import { TransactionService } from '../../core/services/transaction.service';
 import { StatCardComponent } from './components/stat-card/stat-card';
 import { ChartPlaceholderComponent } from './components/chart-placeholder/chart-placeholder';
 import { TransactionsTableComponent } from './components/transactions-table/transactions-table';
@@ -24,65 +25,59 @@ export class Dashboard implements OnInit {
   statCards: StatCard[] = [
     {
       title: 'Ingresos totales',
-      value: '$250,000',
-      change: '+15%',
+      value: '$0',
+      change: '0%',
       isPositive: true
     },
     {
-      title: 'Gastos de nómina',
-      value: '$75,000',
-      change: '-5%',
+      title: 'Gastos totales',
+      value: '$0',
+      change: '0%',
       isPositive: false
     },
     {
-      title: 'Facturas pendientes',
-      value: '$12,500',
-      change: '+10%',
-      isPositive: true
-    },
-    {
-      title: 'Satisfacción de empleados',
-      value: '92%',
-      change: '+2%',
+      title: 'Balance',
+      value: '$0',
+      change: '0%',
       isPositive: true
     }
   ];
 
-  transactions: Transaction[] = [
-    {
-      date: '26/07/2024',
-      description: 'Pago factura #12345',
-      category: 'Ingresos',
-      amount: 5000.00,
-      isPositive: true
-    },
-    {
-      date: '25/07/2024',
-      description: 'Suministros de oficina',
-      category: 'Gastos',
-      amount: 150.25,
-      isPositive: false
-    },
-    {
-      date: '24/07/2024',
-      description: 'Nómina - Julio',
-      category: 'Nómina',
-      amount: 15000.00,
-      isPositive: false
-    },
-    {
-      date: '23/07/2024',
-      description: 'Suscripción de software',
-      category: 'Gastos',
-      amount: 99.00,
-      isPositive: false
-    }
-  ];
+  transactions: Transaction[] = [];
 
-  constructor(private exportService: ExportService) {}
+  constructor(
+    private exportService: ExportService,
+    private transactionService: TransactionService
+  ) {}
 
   ngOnInit(): void {
-    // Inicialización del componente
+    this.loadTransactions();
+  }
+
+  loadTransactions(): void {
+    this.transactionService.getTransactions().subscribe({
+      next: (data) => {
+        this.transactions = data;
+        this.calculateStats();
+      },
+      error: (err) => console.error('Error loading transactions', err)
+    });
+  }
+
+  calculateStats(): void {
+    const income = this.transactions
+      .filter(t => t.type === 'INCOME')
+      .reduce((acc, t) => acc + t.amount, 0);
+    
+    const expenses = this.transactions
+      .filter(t => t.type === 'EXPENSE')
+      .reduce((acc, t) => acc + t.amount, 0);
+
+    const balance = income - expenses;
+
+    this.statCards[0].value = `$${income.toFixed(2)}`;
+    this.statCards[1].value = `$${expenses.toFixed(2)}`;
+    this.statCards[2].value = `$${balance.toFixed(2)}`;
   }
 
   handleExport(): void {
@@ -91,9 +86,9 @@ export class Dashboard implements OnInit {
     const choice = confirm('¿Desea exportar a Excel? (Aceptar = Excel, Cancelar = PDF)');
     
     if (choice) {
-      this.exportService.exportTransactionsToExcel(this.transactions);
+      this.exportService.exportTransactionsToExcel(this.transactions as any);
     } else {
-      this.exportService.exportTransactionsToPDF(this.transactions);
+      this.exportService.exportTransactionsToPDF(this.transactions as any);
     }
   }
 }

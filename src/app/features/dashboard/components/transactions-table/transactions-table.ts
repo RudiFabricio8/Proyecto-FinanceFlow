@@ -13,9 +13,14 @@ export class TransactionsTableComponent {
   @Input() transactions: Transaction[] = [];
   @Output() exportClick = new EventEmitter<void>();
 
-  formatAmount(amount: number, isPositive: boolean): string {
+  formatAmount(amount: number, type: string): string {
+    const isPositive = type === 'INCOME';
     const sign = isPositive ? '+' : '-';
     return `${sign}$${amount.toFixed(2)}`;
+  }
+
+  isPositive(type: string): boolean {
+    return type === 'INCOME';
   }
 
   onExportClick(): void {

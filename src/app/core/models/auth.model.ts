@@ -1,6 +1,8 @@
 export interface User {
   email: string;
   companyName?: string;
+  fullName?: string;
+  role?: string;
   isAuthenticated: boolean;
 }
 
