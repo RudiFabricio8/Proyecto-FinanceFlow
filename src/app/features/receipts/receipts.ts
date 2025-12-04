@@ -44,14 +44,30 @@ export class Receipts implements OnInit {
     const file = event.target.files[0];
     if (file) {
       this.loading = true;
-      // Upload file without injecting mock metadata; real extraction will be handled by backend or dedicated logic
       this.documentsService.uploadDocument({
         file: file,
         type: 'PAYMENT_PROOF'
       }).subscribe({
         next: (doc) => {
-          // After successful upload, reload documents. Transaction creation should be handled by backend or separate logic.
-          this.loadDocuments();
+          // Create transaction from document using backend-extracted metadata
+          // Note: DocumentsService should map extractedAmount/Date to amount/date
+          this.dashboardService.createTransactionFromDocument({
+            title: doc.title || doc.filename,
+            amount: doc.amount,
+            date: doc.date,
+            category: doc.category || 'Expenses',
+            documentId: doc.id
+          }).subscribe({
+            next: () => {
+              console.log('Transaction created from document');
+              this.loadDocuments();
+            },
+            error: (err) => {
+              console.error('Error creating transaction', err);
+              // Still reload documents even if transaction creation fails
+              this.loadDocuments();
+            }
+          });
         },
         error: (err) => {
           console.error('Error uploading document', err);

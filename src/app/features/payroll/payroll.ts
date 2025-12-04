@@ -2,18 +2,17 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PayrollFormula, PayrollCalculation, PayrollPeriod } from '../../core/models/payroll.model';
+import { PayrollFormula, PayrollCalculation } from '../../core/models/payroll.model';
 import { PayrollService } from '../../core/services/payroll.service';
 import { FormulaCalculatorComponent } from './components/formula-calculator/formula-calculator';
 import { SavedFormulasComponent } from './components/saved-formulas/saved-formulas';
 import { CalculationModalComponent } from './components/calculation-modal/calculation-modal';
-import { PayrollPeriodsTableComponent } from './components/payroll-periods-table/payroll-periods-table';
 import { ExportService } from '../../core/services/export';
 
 @Component({
   selector: 'app-payroll',
   standalone: true,
-  imports: [CommonModule, FormsModule, FormulaCalculatorComponent, SavedFormulasComponent, CalculationModalComponent, PayrollPeriodsTableComponent],
+  imports: [CommonModule, FormsModule, FormulaCalculatorComponent, SavedFormulasComponent, CalculationModalComponent],
   templateUrl: './payroll.html',
   styleUrls: ['./payroll.scss']
 })
@@ -21,22 +20,13 @@ export class Payroll implements OnInit {
   formulas: PayrollFormula[] = [];
   currentCalculation: PayrollCalculation | null = null;
   showModal = false;
-  periods: PayrollPeriod[] = [];
   loading = false;
   error = '';
 
   // Modal states
-  showNewPeriodModal = false;
   showNewFormulaModal = false;
 
   // Form models
-  newPeriod = {
-    name: '',
-    startDate: '',
-    endDate: '',
-    notes: ''
-  };
-
   newFormula = {
     concept: '',
     description: '',
@@ -49,23 +39,7 @@ export class Payroll implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.loadPeriods();
     this.loadFormulas();
-  }
-
-  loadPeriods(): void {
-    this.loading = true;
-    this.payrollService.listPeriods().subscribe({
-      next: (data) => {
-        this.periods = data;
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error('Error loading periods', err);
-        this.error = 'Error al cargar períodos';
-        this.loading = false;
-      }
-    });
   }
 
   loadFormulas(): void {
@@ -86,7 +60,13 @@ export class Payroll implements OnInit {
 
     this.payrollService.createFormula(request).subscribe({
       next: (newFormula) => {
-        this.formulas.push(newFormula);
+        // Attach the last calculation result if it matches the saved formula concept
+        const formulaWithResult: any = { ...newFormula };
+        if (this.currentCalculation && this.currentCalculation.result) {
+           formulaWithResult.lastResult = this.currentCalculation.result;
+        }
+        
+        this.formulas.push(formulaWithResult);
         alert('Fórmula guardada exitosamente');
       },
       error: (err) => {
@@ -124,62 +104,6 @@ export class Payroll implements OnInit {
       'Fecha': new Date(calculation.executedAt).toLocaleString()
     }];
     this.exportService.exportToExcel(data, `Calculo_${calculation.id}`);
-  }
-
-  onExportPeriods(): void {
-    const data = this.periods.map(p => ({
-      'Período': p.period,
-      'Estado': p.status,
-      'Inicio': p.startDate,
-      'Fin': p.endDate
-    }));
-    this.exportService.exportToExcel(data, 'Periodos_Nomina');
-  }
-
-  // New Period Modal Methods
-  openNewPeriodModal(): void {
-    this.showNewPeriodModal = true;
-    this.resetPeriodForm();
-  }
-
-  closeNewPeriodModal(): void {
-    this.showNewPeriodModal = false;
-  }
-
-  resetPeriodForm(): void {
-    this.newPeriod = {
-      name: '',
-      startDate: '',
-      endDate: '',
-      notes: ''
-    };
-  }
-
-  createPeriod(): void {
-    if (!this.newPeriod.name || !this.newPeriod.startDate || !this.newPeriod.endDate) {
-      alert('Por favor complete todos los campos requeridos');
-      return;
-    }
-
-    // Backend expects 'period' not 'name'
-    const periodData = {
-      period: this.newPeriod.name,
-      startDate: this.newPeriod.startDate,
-      endDate: this.newPeriod.endDate
-    };
-
-    this.payrollService.createPeriod(periodData).subscribe({
-      next: (period) => {
-        console.log('Período creado:', period);
-        this.periods.push(period);
-        this.closeNewPeriodModal();
-        alert('Período de nómina creado exitosamente');
-      },
-      error: (err) => {
-        console.error('Error creating period', err);
-        alert('Error al crear el período: ' + (err.error?.message || 'Error desconocido'));
-      }
-    });
   }
 
   // New Formula Modal Methods

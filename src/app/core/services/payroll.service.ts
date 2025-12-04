@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { AuthService } from './auth.service';
 
 // Payroll Period interfaces
 export interface PayrollPeriod {
@@ -59,15 +60,26 @@ export interface PayrollCalculation {
 export class PayrollService {
   private apiUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private authService: AuthService) {}
+
+  private getOrganizationId(): string | null {
+    const user = this.authService.getCurrentUser();
+    return user?.organizationId || null;
+  }
 
   // ========== Payroll Periods ==========
   listPeriods(): Observable<PayrollPeriod[]> {
-    return this.http.get<PayrollPeriod[]>(`${this.apiUrl}/payroll-periods`);
+    const orgId = this.getOrganizationId();
+    if (!orgId) {
+      console.warn('No organizationId available');
+      return of([]);
+    }
+    return this.http.get<PayrollPeriod[]>(`${this.apiUrl}/payroll-periods?organizationId=${orgId}`);
   }
 
   createPeriod(request: CreatePeriodRequest): Observable<PayrollPeriod> {
-    return this.http.post<PayrollPeriod>(`${this.apiUrl}/payroll-periods`, request);
+    const orgId = this.getOrganizationId();
+    return this.http.post<PayrollPeriod>(`${this.apiUrl}/payroll-periods?organizationId=${orgId}`, request);
   }
 
   updatePeriodStatus(periodId: string, request: UpdatePeriodStatusRequest): Observable<PayrollPeriod> {
@@ -76,11 +88,28 @@ export class PayrollService {
 
   // ========== Payroll Formulas ==========
   listFormulas(): Observable<PayrollFormula[]> {
-    return this.http.get<PayrollFormula[]>(`${this.apiUrl}/payroll-formulas`);
+    const orgId = this.getOrganizationId();
+    if (!orgId) {
+      console.warn('No organizationId available');
+      return of([]);
+    }
+    return this.http.get<PayrollFormula[]>(`${this.apiUrl}/payroll-formulas?organizationId=${orgId}`);
   }
 
   createFormula(request: CreateFormulaRequest): Observable<PayrollFormula> {
-    return this.http.post<PayrollFormula>(`${this.apiUrl}/payroll-formulas`, request);
+    const orgId = this.getOrganizationId();
+    if (!orgId) {
+      throw new Error('Organization ID not found');
+    }
+    
+    const payload = {
+      organizationId: orgId,
+      name: request.concept,
+      description: request.description,
+      formulaExpression: request.formula
+    };
+
+    return this.http.post<PayrollFormula>(`${this.apiUrl}/payroll-formulas?organizationId=${orgId}`, payload);
   }
 
   deleteFormula(formulaId: string): Observable<void> {

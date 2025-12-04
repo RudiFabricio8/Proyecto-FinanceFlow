@@ -76,4 +76,8 @@ export class AuthService {
     this._isAuth.set(false);
     this.router.navigate(['/']);
   }
+
+  getCurrentUser(): Partial<User> | null {
+    return this.storageService.getUser();
+  }
 }

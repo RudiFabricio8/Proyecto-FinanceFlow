@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { Notification } from '../models/notification.model';
 
@@ -11,18 +12,20 @@ export class NotificationsService {
   constructor(private http: HttpClient) {}
 
   listNotifications(): Observable<Notification[]> {
-    // No default mock data in views: return empty list.
-    // TODO: Implement real API call to fetch notifications (e.g. this.http.get<Notification[]>(this.apiUrl)).
-    return of([] as Notification[]);
+    return this.http.get<{ items: Notification[], unreadCount: number }>(this.apiUrl).pipe(
+      map(response => response.items)
+    );
   }
 
   markAsRead(notificationId: string): Observable<Notification> {
-    // TODO: Implement mark-as-read endpoint on backend
-    return this.http.put<Notification>(`${this.apiUrl}/${notificationId}/read`, {});
+    return this.http.patch<Notification>(`${this.apiUrl}/${notificationId}/read`, {});
   }
 
   dismissNotification(notificationId: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${notificationId}`);
   }
 
+  markAllAsRead(): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/read-all`, {});
+  }
 }

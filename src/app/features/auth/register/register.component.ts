@@ -54,9 +54,8 @@ export class RegisterComponent implements OnInit {
 
     this.auth.register(organizationName!, email!, password!, fullName!).subscribe({
       next: (res: AuthResponse) => {
-        // Token is automatically handled by auth.service.ts
         this.submitting = false;
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/dashboard']); // redirige al panel
       },
       error: (err: Error) => {
         this.submitting = false;

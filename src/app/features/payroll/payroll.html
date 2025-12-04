@@ -4,39 +4,25 @@
     <div class="header-content">
       <div>
         <h1 class="payroll-title">Gestión de Nómina</h1>
-        <p class="payroll-subtitle">Fórmulas y Reglas - Configuración Técnica</p>
+        <p class="payroll-subtitle">Calculadora de Fórmulas y Reglas</p>
       </div>
-      <div class="header-actions">
-        <button class="btn-primary" (click)="openNewPeriodModal()">
-          <i class="bi bi-calendar-plus"></i>
-          Nuevo Período
-        </button>
-        <button class="btn-secondary" (click)="openNewFormulaModal()">
-          <i class="bi bi-calculator"></i>
-          Nueva Fórmula
-        </button>
-      </div>
+      <!-- Actions removed as requested -->
     </div>
   </header>
 
   <div class="content-grid">
+    <!-- History/Formulas Section (Left) -->
+    <div class="formulas-section">
+      <app-saved-formulas [formulas]="formulas"></app-saved-formulas>
+    </div>
+
+    <!-- Calculator Section (Right) -->
     <div class="calculator-section">
       <app-formula-calculator
         (saveFormula)="onSaveFormula($event)"
         (calculate)="onCalculate($event)">
       </app-formula-calculator>
     </div>
-
-    <div class="formulas-section">
-      <app-saved-formulas [formulas]="formulas"></app-saved-formulas>
-    </div>
-  </div>
-
-  <div class="periods-section">
-    <app-payroll-periods-table
-      [periods]="periods"
-      (exportData)="onExportPeriods()">
-    </app-payroll-periods-table>
   </div>
 
   <app-calculation-modal
@@ -45,40 +31,6 @@
     (close)="onCloseModal()"
     (exportPdf)="onExportPdf($event)">
   </app-calculation-modal>
-
-  <!-- New Period Modal -->
-  <div class="modal-overlay" *ngIf="showNewPeriodModal" (click)="closeNewPeriodModal()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h2>Crear Nuevo Período de Nómina</h2>
-        <button class="close-btn" (click)="closeNewPeriodModal()">×</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label>Nombre del Período</label>
-          <input type="text" [(ngModel)]="newPeriod.name" placeholder="Ej: Enero 2024" class="form-control">
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Fecha de Inicio</label>
-            <input type="date" [(ngModel)]="newPeriod.startDate" class="form-control">
-          </div>
-          <div class="form-group">
-            <label>Fecha de Fin</label>
-            <input type="date" [(ngModel)]="newPeriod.endDate" class="form-control">
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Notas (Opcional)</label>
-          <textarea [(ngModel)]="newPeriod.notes" rows="3" class="form-control"></textarea>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn-cancel" (click)="closeNewPeriodModal()">Cancelar</button>
-        <button class="btn-primary" (click)="createPeriod()">Crear Período</button>
-      </div>
-    </div>
-  </div>
 
   <!-- New Formula Modal -->
   <div class="modal-overlay" *ngIf="showNewFormulaModal" (click)="closeNewFormulaModal()">

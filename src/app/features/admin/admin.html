@@ -63,18 +63,36 @@
               <tr *ngFor="let period of filteredPeriods">
                 <td class="period-col">{{ period.period }}</td>
                 <td>
-                  <span class="status-badge" [ngClass]="getStatusClass(period.status)">
-                    {{ getStatusLabel(period.status) }}
-                  </span>
+                  <select 
+                    class="status-select" 
+                    [ngClass]="getStatusClass(period.status)"
+                    [ngModel]="period.status"
+                    (ngModelChange)="updateStatus(period, $event)">
+                    <option value="DRAFT">Borrador</option>
+                    <option value="PENDING">Pendiente</option>
+                    <option value="PROCESSED">Procesado</option>
+                    <option value="APPROVED">Aprobado</option>
+                    <option value="PAUSED">Pausado</option>
+                    <option value="CANCELLED">Cancelado</option>
+                  </select>
                 </td>
                 <td class="date-col">{{ formatDate(period.lastModified) }}</td>
-                <td class="score-col">{{ period.complianceScore }}%</td>
+                <td class="score-col">
+                  <div class="score-input-wrapper">
+                    <input 
+                      type="number" 
+                      min="0" 
+                      max="100" 
+                      step="5"
+                      class="score-input"
+                      [ngModel]="period.complianceScore"
+                      (change)="updateScore(period, +$event.target.value)">
+                    <span class="score-percent">%</span>
+                  </div>
+                </td>
                 <td class="actions-col">
                   <button class="action-btn" title="Ver detalles">
                     <i class="bi bi-eye"></i>
-                  </button>
-                  <button class="action-btn" title="Editar">
-                    <i class="bi bi-pencil"></i>
                   </button>
                 </td>
               </tr>

@@ -65,6 +65,26 @@ export class Notifications implements OnInit {
     return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
   }
 
+  navigateToSource(notification: Notification): void {
+    if (notification.navigationPath) {
+      this.router.navigate([notification.navigationPath]);
+      // Mark as read when navigating
+      this.markAsRead(notification.id);
+    }
+  }
+
+  markAsRead(id: string): void {
+    this.notificationsService.markAsRead(id).subscribe({
+      next: (updated) => {
+        const index = this.notifications.findIndex(n => n.id === id);
+        if (index !== -1) {
+          this.notifications[index] = updated;
+        }
+      },
+      error: (err) => console.error('Error marking as read', err)
+    });
+  }
+
   handleAction(notification: Notification, action: NotificationAction): void {
     console.log(`Action: ${action.action} on notification:`, notification.id);
     
@@ -73,19 +93,13 @@ export class Notifications implements OnInit {
         this.dismissNotification(notification.id);
         break;
       case 'INVESTIGATE':
-        // Navigate to relevant page or open modal
-        console.log('Navigate to investigation page');
-        break;
-      case 'PROCESS_PAYMENT':
-        // Open payment processing
-        console.log('Open payment processing');
-        break;
       case 'VIEW_REPORT':
-        this.router.navigate(['/receipts']);
-        break;
       case 'VIEW_TAX_CALENDAR':
-        // Navigate to tax calendar
-        console.log('Open tax calendar');
+      case 'PROCESS_PAYMENT':
+        // Use navigation path if available
+        if (notification.navigationPath) {
+          this.navigateToSource(notification);
+        }
         break;
       default:
         console.log('Custom action');

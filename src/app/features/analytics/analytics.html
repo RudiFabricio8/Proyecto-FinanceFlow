@@ -15,50 +15,74 @@
       <div class="chapter-content" [ngSwitch]="chapter.id">
         
         <!-- Chapter 1: Costo Total -->
-        <div *ngSwitchCase="'1'" class="stats-grid">
-          <div class="stat-card">
-            <h4>Costo Total Nómina</h4>
-            <p class="stat-value">{{ overview ? (overview.totalPayrollCost | currency) : '...' }}</p>
-            <p class="stat-change negative">Mensual</p>
+        <div *ngSwitchCase="'1'" class="chapter-body">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <h4>Costo Total Nómina</h4>
+              <p class="stat-value">{{ overview ? (overview.totalCost | currency) : '...' }}</p>
+              <p class="stat-change negative">Mensual</p>
+            </div>
+            <div class="stat-card">
+              <h4>Salario Bruto Total</h4>
+              <p class="stat-value">{{ overview ? (overview.totalGrossSalary | currency) : '...' }}</p>
+              <p class="stat-change positive">Acumulado</p>
+            </div>
           </div>
-          <div class="stat-card">
-            <h4>Salario Promedio</h4>
-            <p class="stat-value">{{ overview ? (overview.averageSalary | currency) : '...' }}</p>
-            <p class="stat-change positive">Por empleado</p>
-          </div>
+          <app-analytics-chart
+            chartType="bar"
+            [labels]="costChartLabels"
+            [data]="costChartData"
+            title="Desglose de Costos de Nómina"
+            [colors]="['#6c5ce7', '#e17055', '#00cec9']">
+          </app-analytics-chart>
         </div>
 
-        <!-- Chapter 2: Balance (Placeholder for now as we lack specific data) -->
-        <div *ngSwitchCase="'2'" class="stats-grid">
-          <div class="stat-card">
-            <h4>Deducciones Totales</h4>
-            <p class="stat-value">$0.00</p>
-            <p class="stat-change">Estimado</p>
+        <!-- Chapter 2: Balance -->
+        <div *ngSwitchCase="'2'" class="chapter-body">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <h4>Deducciones Totales</h4>
+              <p class="stat-value">{{ overview ? (overview.totalDeductions | currency) : '...' }}</p>
+              <p class="stat-change">Acumulado</p>
+            </div>
+            <div class="stat-card">
+              <h4>Períodos Procesados</h4>
+              <p class="stat-value">{{ overview?.statusSummary?.processed || 0 }}</p>
+              <p class="stat-change positive">Completados</p>
+            </div>
           </div>
-          <div class="stat-card">
-            <h4>Percepciones Netas</h4>
-            <p class="stat-value">$0.00</p>
-            <p class="stat-change">Estimado</p>
-          </div>
+          <app-analytics-chart
+            chartType="line"
+            [labels]="timeseriesLabels"
+            [data]="timeseriesGrossData"
+            title="Tendencia de Salarios por Período"
+            [colors]="['#00cec9', '#6c5ce7', '#fdcb6e']">
+          </app-analytics-chart>
         </div>
 
         <!-- Chapter 3: Eficiencia -->
-        <div *ngSwitchCase="'3'" class="stats-grid">
-          <div class="stat-card">
-            <h4>Empleados Activos</h4>
-            <p class="stat-value">{{ overview ? overview.employeeCount : '...' }}</p>
-            <p class="stat-change positive">Total</p>
+        <div *ngSwitchCase="'3'" class="chapter-body">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <h4>Períodos en Borrador</h4>
+              <p class="stat-value">{{ overview?.statusSummary?.draft || 0 }}</p>
+              <p class="stat-change">Pendientes</p>
+            </div>
+            <div class="stat-card">
+              <h4>Períodos Pausados</h4>
+              <p class="stat-value">{{ overview?.statusSummary?.paused || 0 }}</p>
+              <p class="stat-change negative">En espera</p>
+            </div>
           </div>
-          <div class="stat-card">
-            <h4>Tasa de Rotación</h4>
-            <p class="stat-value">{{ overview ? overview.turnoverRate + '%' : '...' }}</p>
-            <p class="stat-change negative">Anual</p>
-          </div>
+          <app-analytics-chart
+            chartType="doughnut"
+            [labels]="statusChartLabels"
+            [data]="statusChartData"
+            title="Distribución de Estados de Períodos"
+            [colors]="['#00cec9', '#fdcb6e', '#e17055']">
+          </app-analytics-chart>
         </div>
 
-        <div class="chart-placeholder">
-          <p>[Gráfico de Análisis para {{ chapter.title }}]</p>
-        </div>
       </div>
     </app-chapter-accordion>
   </div>

@@ -1,17 +1,17 @@
-import { Component} from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PayrollService, PayrollPeriod } from '../../core/services/payroll.service';
+import { AdminService, PeriodSummary } from '../../core/services/admin.service';
 import { ExportService } from '../../core/services/export';
 
 interface CompliancePeriod {
   id: string;
   period: string;
-  status: 'DRAFT' | 'PROCESSED' | 'PAUSED';
+  status: string;
   lastModified: string;
   complianceScore: number;
-  startDate: string;
-  endDate: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 @Component({
@@ -28,7 +28,7 @@ export class Admin {
   filterText = '';
 
   constructor(
-    private payrollService: PayrollService,
+    private adminService: AdminService,
     private exportService: ExportService
   ) {
     this.loadPeriods();
@@ -36,70 +36,78 @@ export class Admin {
 
   loadPeriods(): void {
     this.loading = true;
-    this.payrollService.listPeriods().subscribe({
-      next: (apiPeriods) => {
-        this.periods = apiPeriods.map(p => this.mapToCompliancePeriod(p));
-        if (this.periods.length > 0) {
+    this.adminService.getComplianceData().subscribe({
+      next: (response) => {
+        this.periods = response.periods.map(p => ({
+          id: p.id,
+          period: p.name,
+          status: p.status,
+          lastModified: p.lastModified,
+          complianceScore: p.complianceScore
+        }));
+        
+        if (this.periods.length > 0 && !this.selectedPeriodId) {
           this.selectedPeriodId = this.periods[0].id;
         }
         this.loading = false;
       },
       error: (err) => {
-        console.error('Error loading periods', err);
+        console.error('Error loading compliance data', err);
         this.loading = false;
       }
     });
-  }
-
-  mapToCompliancePeriod(apiPeriod: PayrollPeriod): CompliancePeriod {
-    let complianceScore = 0;
-    
-    switch (apiPeriod.status) {
-      case 'PROCESSED':
-        complianceScore = 95;
-        break;
-      case 'DRAFT':
-        complianceScore = 70;
-        break;
-      case 'PAUSED':
-        complianceScore = 80;
-        break;
-    }
-
-    return {
-      id: apiPeriod.id,
-      period: apiPeriod.period,
-      status: apiPeriod.status,
-      lastModified: apiPeriod.updatedAt,
-      complianceScore,
-      startDate: apiPeriod.startDate,
-      endDate: apiPeriod.endDate
-    };
   }
 
   selectPeriod(periodId: string): void {
     this.selectedPeriodId = periodId;
   }
 
+  updateStatus(period: CompliancePeriod, newStatus: string): void {
+    this.adminService.updatePeriodStatus(period.id, newStatus).subscribe({
+      next: () => {
+        period.status = newStatus;
+        period.lastModified = new Date().toISOString();
+      },
+      error: (err) => console.error('Error updating status', err)
+    });
+  }
+
+  updateScore(period: CompliancePeriod, newScore: number): void {
+    this.adminService.updateComplianceScore(period.id, newScore).subscribe({
+      next: () => {
+        period.complianceScore = newScore;
+        period.lastModified = new Date().toISOString();
+      },
+      error: (err) => console.error('Error updating score', err)
+    });
+  }
+
   getStatusClass(status: string): string {
     switch (status) {
-      case 'PROCESSED': return 'status-approved';
-      case 'DRAFT': return 'status-draft';
+      case 'PROCESSED': return 'status-approved'; // Green
+      case 'APPROVED': return 'status-approved';
+      case 'DRAFT': return 'status-draft';       // Yellow
+      case 'PENDING': return 'status-paused';    // Blue/Orange
       case 'PAUSED': return 'status-paused';
+      case 'CANCELLED': return 'status-canceled'; // Red
       default: return '';
     }
   }
 
   getStatusLabel(status: string): string {
     switch (status) {
-      case 'PROCESSED': return 'Aprobado';
+      case 'PROCESSED': return 'Procesado';
+      case 'APPROVED': return 'Aprobado';
       case 'DRAFT': return 'Borrador';
-      case 'PAUSED': return 'Procesado';
+      case 'PENDING': return 'Pendiente';
+      case 'PAUSED': return 'Pausado';
+      case 'CANCELLED': return 'Cancelado';
       default: return status;
     }
   }
 
   formatDate(dateString: string): string {
+    if (!dateString) return '-';
     const date = new Date(dateString);
     return date.toLocaleString('es-ES', { 
       year: 'numeric',
@@ -124,9 +132,7 @@ export class Admin {
       'Período': p.period,
       'Estado': this.getStatusLabel(p.status),
       'Última Modificación': this.formatDate(p.lastModified),
-      'Puntuación Cumplimiento': `${p.complianceScore}%`,
-      'Fecha Inicio': p.startDate,
-      'Fecha Fin': p.endDate
+      'Puntuación Cumplimiento': `${p.complianceScore}%`
     }));
 
     this.exportService.exportToExcel(data, 'Reporte_Cumplimiento');

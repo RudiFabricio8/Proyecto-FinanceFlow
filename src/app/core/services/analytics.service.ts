@@ -1,42 +1,75 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { StorageService } from './storage.service';
+
+export interface PeriodBreakdown {
+  period: string;
+  grossSalary: string;
+  deductions: string;
+  netSalary: string;
+  status: string;
+}
+
+export interface StatusSummary {
+  draft: number;
+  processed: number;
+  paused: number;
+}
 
 export interface AnalyticsOverview {
-  totalPayrollCost: number;
-  employeeCount: number;
-  turnoverRate: number;
-  averageSalary: number;
+  totalCost: string;
+  totalGrossSalary: string;
+  totalDeductions: string;
+  periodBreakdown: PeriodBreakdown[];
+  statusSummary: StatusSummary;
 }
 
 export interface TimeseriesDataPoint {
   date: string;
-  value: number;
+  grossSalary: string;
+  deductions: string;
+  netSalary: string;
+  status: string;
 }
 
-export interface TimeseriesData {
-  data: TimeseriesDataPoint[];
+export interface TimeseriesResponse {
+  series: TimeseriesDataPoint[];
 }
 
 @Injectable({ providedIn: 'root' })
 export class AnalyticsService {
   private apiUrl = `${environment.apiUrl}/analytics`;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private storageService: StorageService
+  ) {}
 
   getOverview(): Observable<AnalyticsOverview> {
-    return this.http.get<AnalyticsOverview>(`${this.apiUrl}/overview`);
+    const user = this.storageService.getUser();
+    if (!user?.organizationId) {
+      console.warn('Organization ID not found - please re-login');
+      return of({
+        totalCost: '0',
+        totalGrossSalary: '0',
+        totalDeductions: '0',
+        periodBreakdown: [],
+        statusSummary: { draft: 0, processed: 0, paused: 0 }
+      });
+    }
+    const params = new HttpParams().set('organizationId', user.organizationId);
+    return this.http.get<AnalyticsOverview>(`${this.apiUrl}/overview`, { params });
   }
 
-  getTimeseries(metric: string, startDate?: string, endDate?: string): Observable<TimeseriesData> {
-    let params = new HttpParams().set('metric', metric);
-    if (startDate) {
-      params = params.set('startDate', startDate);
+  getTimeseries(): Observable<TimeseriesResponse> {
+    const user = this.storageService.getUser();
+    if (!user?.organizationId) {
+      console.warn('Organization ID not found - please re-login');
+      return of({ series: [] });
     }
-    if (endDate) {
-      params = params.set('endDate', endDate);
-    }
-    return this.http.get<TimeseriesData>(`${this.apiUrl}/timeseries`, { params });
+    const params = new HttpParams().set('organizationId', user.organizationId);
+    return this.http.get<TimeseriesResponse>(`${this.apiUrl}/timeseries`, { params });
   }
 }

@@ -11,8 +11,18 @@
 
   <!-- Gráficas -->
   <div class="charts-grid">
-    <app-chart-placeholder title="Cash Flow"></app-chart-placeholder>
-    <app-chart-placeholder title="Expense Breakdown"></app-chart-placeholder>
+    <div class="chart-card">
+      <h3 class="chart-title">Cash Flow</h3>
+      <div class="chart-wrapper">
+        <canvas #revenueChart></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3 class="chart-title">Expense Breakdown</h3>
+      <div class="chart-wrapper">
+        <canvas #expensesChart></canvas>
+      </div>
+    </div>
   </div>
 
   <!-- Recent Transactions Table -->
@@ -20,7 +30,7 @@
     <div class="section-header">
       <h2>Recent Transactions</h2>
       <button class="export-btn" (click)="exportTransactions()">
-        Export (Excel/PDF)
+        Export (Excel)
       </button>
     </div>
 
@@ -51,7 +61,7 @@
       </table>
 
       <div class="no-transactions" *ngIf="recentTransactions.length === 0">
-        <p>No recent transactions available</p>
+        <p>No recent transactions. Upload documents to see them here.</p>
       </div>
     </div>
 

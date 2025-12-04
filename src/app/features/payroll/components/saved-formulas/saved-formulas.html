@@ -6,9 +6,14 @@
     <div *ngFor="let formula of formulas" class="formula-item">
       <div class="formula-header">
         <span class="formula-concept">{{ formula.concept }}</span>
+        <span class="formula-result" *ngIf="formula.lastResult !== undefined">
+          {{ formatCurrency(formula.lastResult) }}
+        </span>
       </div>
       <p class="formula-description">{{ formula.description }}</p>
-      <p class="formula-date">{{ formula.createdAt | date:'short' }}</p>
+      <div class="formula-footer">
+        <span class="formula-date">{{ formula.createdAt | date:'short' }}</span>
+      </div>
     </div>
     
     <div *ngIf="formulas.length === 0" class="empty-state">
