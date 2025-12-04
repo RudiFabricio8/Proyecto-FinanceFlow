@@ -73,7 +73,7 @@ object PayrollFormulas : Table("payroll_formulas") {
     val name = varchar("name", 255)
     val description = text("description").nullable()
     val formulaExpression = text("formula_expression")
-    val variables = text("variables").nullable() // JSON serialized
+    val variables = text("variables").nullable()
     val createdBy = reference("created_by", Users.id)
     val createdAt = timestamp("created_at").nullable()
     val updatedAt = timestamp("updated_at").nullable()
@@ -86,7 +86,7 @@ object PayrollCalculations : Table("payroll_calculations") {
     val formulaId = reference("formula_id", PayrollFormulas.id).nullable()
     val payrollPeriodId = reference("payroll_period_id", PayrollPeriods.id)
     val concept = varchar("concept", 255)
-    val inputValues = text("input_values") // JSON serialized
+    val inputValues = text("input_values")
     val resultAmount = decimal("result_amount", 15, 2)
     val calculationSteps = text("calculation_steps").nullable() // JSON serialized
     val calculatedBy = reference("calculated_by", Users.id)
@@ -116,8 +116,8 @@ object AuditLogs : Table("audit_logs") {
     val action = varchar("action", 255)
     val entityType = varchar("entity_type", 100).nullable()
     val entityId = uuid("entity_id").nullable()
-    val oldValue = text("old_value").nullable() // JSON serialized
-    val newValue = text("new_value").nullable() // JSON serialized
+    val oldValue = text("old_value").nullable()
+    val newValue = text("new_value").nullable()
     val ipAddress = varchar("ip_address", 50).nullable()
     val userAgent = text("user_agent").nullable()
     val createdAt = timestamp("created_at").nullable()

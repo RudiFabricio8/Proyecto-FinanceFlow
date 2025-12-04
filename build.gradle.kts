@@ -46,6 +46,8 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-java-time:$exposed_version")
     implementation("org.postgresql:postgresql:$postgres_version")
 
+    implementation("com.zaxxer:HikariCP:5.1.0")
+
     // Dependency Injection (Koin)
     implementation("io.insert-koin:koin-ktor:$koin_version")
     implementation("io.insert-koin:koin-logger-slf4j:$koin_version")
