@@ -1,32 +1,36 @@
-// src/app/features/admin/admin.ts
-import { Component, OnInit } from '@angular/core';
+import { Component} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { PayrollPeriod as UiPayrollPeriod, DailyPayrollRecord, ComplianceStatus } from '../../core/models/payroll-period.model';
-import { PayrollService } from '../../core/services/payroll.service';
-import { PayrollPeriod as ApiPayrollPeriod, PayrollCalculation } from '../../core/models/payroll.model';
-import { PeriodSelectorComponent } from './components/period-selector/period-selector';
-import { ComplianceTableComponent } from './components/compliance-table/compliance-table';
+import { FormsModule } from '@angular/forms';
+import { PayrollService, PayrollPeriod } from '../../core/services/payroll.service';
 import { ExportService } from '../../core/services/export';
+
+interface CompliancePeriod {
+  id: string;
+  period: string;
+  status: 'DRAFT' | 'PROCESSED' | 'PAUSED';
+  lastModified: string;
+  complianceScore: number;
+  startDate: string;
+  endDate: string;
+}
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, PeriodSelectorComponent, ComplianceTableComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './admin.html',
   styleUrl: './admin.scss'
 })
-export class Admin implements OnInit {
-  periods: UiPayrollPeriod[] = [];
-  selectedPeriod: UiPayrollPeriod | null = null;
-  dailyRecords: DailyPayrollRecord[] = [];
+export class Admin {
+  periods: CompliancePeriod[] = [];
+  selectedPeriodId: string | null = null;
   loading = false;
+  filterText = '';
 
   constructor(
     private payrollService: PayrollService,
     private exportService: ExportService
-  ) {}
-
-  ngOnInit(): void {
+  ) {
     this.loadPeriods();
   }
 
@@ -34,9 +38,9 @@ export class Admin implements OnInit {
     this.loading = true;
     this.payrollService.listPeriods().subscribe({
       next: (apiPeriods) => {
-        this.periods = apiPeriods.map(p => this.mapToUiPeriod(p));
+        this.periods = apiPeriods.map(p => this.mapToCompliancePeriod(p));
         if (this.periods.length > 0) {
-          this.onPeriodSelected(this.periods[0]);
+          this.selectedPeriodId = this.periods[0].id;
         }
         this.loading = false;
       },
@@ -47,71 +51,84 @@ export class Admin implements OnInit {
     });
   }
 
-  onPeriodSelected(period: UiPayrollPeriod): void {
-    this.periods.forEach(p => p.isActive = p.id === period.id);
-    this.selectedPeriod = period;
-    this.loadDailyRecords(period);
-  }
-
-  loadDailyRecords(period: UiPayrollPeriod): void {
-    // Ideally we filter by periodId, but listCalculations might return all or we need to filter client-side
-    // if the API doesn't support filtering by periodId yet (it does in our implementation plan but let's check service)
-    // The service has listCalculations(periodId?: string).
+  mapToCompliancePeriod(apiPeriod: PayrollPeriod): CompliancePeriod {
+    let complianceScore = 0;
     
-    this.payrollService.listCalculations(period.id).subscribe({
-      next: (calculations) => {
-        this.dailyRecords = calculations.map(c => this.mapToDailyRecord(c));
-      },
-      error: (err) => console.error('Error loading calculations', err)
-    });
-  }
+    switch (apiPeriod.status) {
+      case 'PROCESSED':
+        complianceScore = 95;
+        break;
+      case 'DRAFT':
+        complianceScore = 70;
+        break;
+      case 'PAUSED':
+        complianceScore = 80;
+        break;
+    }
 
-  private mapToUiPeriod(apiPeriod: ApiPayrollPeriod): UiPayrollPeriod {
-    const date = new Date(apiPeriod.startDate);
-    const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-    
     return {
       id: apiPeriod.id,
-      month: monthNames[date.getMonth()],
-      year: date.getFullYear(),
-      isActive: false
+      period: apiPeriod.period,
+      status: apiPeriod.status,
+      lastModified: apiPeriod.updatedAt,
+      complianceScore,
+      startDate: apiPeriod.startDate,
+      endDate: apiPeriod.endDate
     };
   }
 
-  private mapToDailyRecord(calc: PayrollCalculation): DailyPayrollRecord {
-    const date = new Date(calc.executedAt);
-    const dayStr = date.getDate().toString().padStart(2, '0');
-    const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-    
-    return {
-      id: calc.id,
-      date: `${dayStr} ${monthNames[date.getMonth()]} ${date.getFullYear()}`,
-      status: 'processed', // Default status as calculations are usually processed
-      lastModified: date.toLocaleString(),
-      complianceScore: 100 // Mock score as we don't have it in calculation
-    };
+  selectPeriod(periodId: string): void {
+    this.selectedPeriodId = periodId;
   }
 
-  onStatusChange(data: { id: string; status: ComplianceStatus }): void {
-    const record = this.dailyRecords.find(r => r.id === data.id);
-    if (record) {
-      record.status = data.status;
-      console.log(`Estado actualizado para ${record.date}: ${data.status}`);
+  getStatusClass(status: string): string {
+    switch (status) {
+      case 'PROCESSED': return 'status-approved';
+      case 'DRAFT': return 'status-draft';
+      case 'PAUSED': return 'status-paused';
+      default: return '';
     }
   }
 
-  onExport(): void {
-    if (!this.selectedPeriod) return;
+  getStatusLabel(status: string): string {
+    switch (status) {
+      case 'PROCESSED': return 'Aprobado';
+      case 'DRAFT': return 'Borrador';
+      case 'PAUSED': return 'Procesado';
+      default: return status;
+    }
+  }
+
+  formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleString('es-ES', { 
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  }
+
+  get filteredPeriods(): CompliancePeriod[] {
+    if (!this.filterText) return this.periods;
     
-    console.log('Exportando datos de:', this.selectedPeriod.month, this.selectedPeriod.year);
-    
-    const dataToExport = this.dailyRecords.map(r => ({
-      'Fecha': r.date,
-      'Estado': r.status,
-      'Última Modificación': r.lastModified,
-      'Cumplimiento': `${r.complianceScore}%`
+    return this.periods.filter(p => 
+      p.period.toLowerCase().includes(this.filterText.toLowerCase())
+    );
+  }
+
+  exportCompliance(): void {
+    const data = this.periods.map(p => ({
+      'Período': p.period,
+      'Estado': this.getStatusLabel(p.status),
+      'Última Modificación': this.formatDate(p.lastModified),
+      'Puntuación Cumplimiento': `${p.complianceScore}%`,
+      'Fecha Inicio': p.startDate,
+      'Fecha Fin': p.endDate
     }));
 
-    this.exportService.exportToExcel(dataToExport, `Nomina_${this.selectedPeriod.month}_${this.selectedPeriod.year}`);
+    this.exportService.exportToExcel(data, 'Reporte_Cumplimiento');
   }
 }

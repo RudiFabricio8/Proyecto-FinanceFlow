@@ -1,15 +1,43 @@
 <!-- src/app/features/notifications/notifications.html -->
 <div class="notifications-container">
   <header class="notifications-header">
-    <h1 class="notifications-title">Flujo de Alertas Proactivas</h1>
+    <h1 class="notifications-title">Proactive Alert Stream</h1>
   </header>
 
-  <div class="alerts-list">
-    <app-alert-card
-      *ngFor="let alert of alerts"
-      [alert]="alert"
-      (dismiss)="dismissAlert($event)"
-      (action)="handleAction($event)">
-    </app-alert-card>
+  <div class="alerts-stream" *ngIf="!loading">
+    <div 
+      *ngFor="let notification of notifications" 
+      class="alert-card" 
+      [ngClass]="getSeverityClass(notification.severity)">
+      
+      <div class="alert-content">
+        <div class="alert-header">
+          <h3 class="alert-title">{{ notification.title }}</h3>
+          <span class="alert-time">{{ getRelativeTime(notification.createdAt) }}</span>
+        </div>
+        
+        <p class="alert-message">{{ notification.message }}</p>
+        
+        <div class="alert-actions">
+          <button 
+            *ngFor="let action of notification.actions" 
+            class="alert-btn"
+            [ngClass]="{ 'btn-primary': action.isPrimary, 'btn-secondary': !action.isPrimary }"
+            (click)="handleAction(notification, action)">
+            {{ action.label }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="notifications.length === 0" class="no-notifications">
+      <i class="bi bi-bell-slash"></i>
+      <p>No hay notificaciones pendientes</p>
+      <p class="no-notifications-hint">Cuando haya nuevas alertas, aparecerán aquí</p>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading-state">
+    <p>Cargando notificaciones...</p>
   </div>
 </div>

@@ -2,19 +2,18 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { Alert, Notification, NotificationSeverity } from '../../core/models/notification.model';
+import { Notification, NotificationAction } from '../../core/models/notification.model';
 import { NotificationsService } from '../../core/services/notifications.service';
-import { AlertCardComponent } from './components/alert-card/alert-card';
 
 @Component({
   selector: 'app-notifications',
   standalone: true,
-  imports: [CommonModule, AlertCardComponent],
+  imports: [CommonModule],
   templateUrl: './notifications.html',
   styleUrl: './notifications.scss'
 })
 export class Notifications implements OnInit {
-  alerts: Alert[] = [];
+  notifications: Notification[] = [];
   loading = true;
 
   constructor(
@@ -30,7 +29,7 @@ export class Notifications implements OnInit {
     this.loading = true;
     this.notificationsService.listNotifications().subscribe({
       next: (notifications) => {
-        this.alerts = notifications.map(n => this.mapToAlert(n));
+        this.notifications = notifications;
         this.loading = false;
       },
       error: (err) => {
@@ -40,53 +39,65 @@ export class Notifications implements OnInit {
     });
   }
 
-  dismissAlert(id: string): void {
-    this.notificationsService.markAsRead(id).subscribe({
-      next: () => {
-        this.alerts = this.alerts.filter(a => a.id !== id);
-      },
-      error: (err) => console.error('Error marking notification as read', err)
-    });
-  }
-
-  handleAction(alertItem: Alert): void {
-    console.log('Acción ejecutada:', alertItem.primaryAction, 'para alerta:', alertItem.id);
-    
-    // Mapeo de acciones a rutas
-    const actionRoutes: { [key: string]: string } = {
-      'investigate': '/dashboard',
-      'processPayment': '/receipts',
-      'viewReport': '/analytics',
-      'viewCalendar': '/admin',
-      'learnMore': '/help'
-    };
-
-    const route = actionRoutes[alertItem.primaryAction || ''] || '/dashboard';
-    
-    if (route) {
-      this.router.navigate([route]);
-    }
-  }
-
-  private mapToAlert(notification: Notification): Alert {
-    return {
-      id: notification.id,
-      priority: this.mapSeverityToPriority(notification.severity),
-      title: notification.title,
-      message: notification.message,
-      timestamp: new Date(notification.createdAt).toLocaleString(),
-      primaryAction: 'investigate', // Default action, could be derived from type
-      primaryActionLabel: 'Ver Detalles'
-    };
-  }
-
-  private mapSeverityToPriority(severity: NotificationSeverity): 'urgent' | 'action' | 'info' | 'reminder' {
+  getSeverityClass(severity: string): string {
     switch (severity) {
-      case 'ERROR': return 'urgent';
-      case 'WARNING': return 'action';
-      case 'INFO': return 'info';
-      case 'SUCCESS': return 'info';
-      default: return 'info';
+      case 'URGENT': return 'severity-urgent';
+      case 'ACTION_REQUIRED': return 'severity-action';
+      case 'INFO': return 'severity-info';
+      case 'REMINDER': return 'severity-reminder';
+      default: return '';
     }
+  }
+
+  getRelativeTime(dateString: string): string {
+    const now = new Date();
+    const date = new Date(dateString);
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+    
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+  }
+
+  handleAction(notification: Notification, action: NotificationAction): void {
+    console.log(`Action: ${action.action} on notification:`, notification.id);
+    
+    switch (action.action) {
+      case 'DISMISS':
+        this.dismissNotification(notification.id);
+        break;
+      case 'INVESTIGATE':
+        // Navigate to relevant page or open modal
+        console.log('Navigate to investigation page');
+        break;
+      case 'PROCESS_PAYMENT':
+        // Open payment processing
+        console.log('Open payment processing');
+        break;
+      case 'VIEW_REPORT':
+        this.router.navigate(['/receipts']);
+        break;
+      case 'VIEW_TAX_CALENDAR':
+        // Navigate to tax calendar
+        console.log('Open tax calendar');
+        break;
+      default:
+        console.log('Custom action');
+    }
+  }
+
+  dismissNotification(id: string): void {
+    this.notificationsService.dismissNotification(id).subscribe({
+      next: () => {
+        this.notifications = this.notifications.filter(n => n.id !== id);
+      },
+      error: (err) => console.error('Error dismissing notification', err)
+    });
   }
 }

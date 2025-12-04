@@ -1,27 +1,29 @@
-// Notification types and severities matching backend
-export type NotificationType = 'PERIOD_CREATED' | 'CALCULATION_COMPLETED' | 'DOCUMENT_UPLOADED' | 'DEADLINE_APPROACHING';
-export type NotificationSeverity = 'INFO' | 'WARNING' | 'ERROR' | 'SUCCESS';
+// Notification types and severity levels
+export type NotificationType = 'PAYROLL_DISCREPANCY' | 'INVOICE_OVERDUE' | 'DOCUMENT_UPLOAD' | 'TAX_DEADLINE' | 'SYSTEM';
+export type NotificationSeverity = 'URGENT' | 'ACTION_REQUIRED' | 'INFO' | 'REMINDER';
+
+export interface NotificationAction {
+  label: string;
+  action: 'DISMISS' | 'INVESTIGATE' | 'PROCESS_PAYMENT' | 'VIEW_REPORT' | 'VIEW_TAX_CALENDAR' | 'CUSTOM';
+  isPrimary: boolean;
+}
 
 export interface Notification {
   id: string;
-  userId: string;
+  organizationId: string;
   title: string;
+  message: string;
   type: NotificationType;
   severity: NotificationSeverity;
-  message: string;
   isRead: boolean;
   createdAt: string;
+  actions: NotificationAction[];
+  relatedEntityId?: string; // Optional link to related document, period, etc.
 }
 
-// Legacy Alert interface (can be removed if not used)
-export type AlertPriority = 'urgent' | 'action' | 'info' | 'reminder';
-
-export interface Alert {
-  id: string;
-  priority: AlertPriority;
+export interface CreateNotificationRequest {
   title: string;
   message: string;
-  timestamp: string;
-  primaryAction: string;
-  primaryActionLabel: string;
+  type: NotificationType;
+  severity: NotificationSeverity;
 }

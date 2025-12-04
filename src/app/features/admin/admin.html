@@ -1,29 +1,95 @@
 <div class="admin-container">
-  <div class="header">
-    <h1>Administración de Nómina</h1>
-    <p>Gestión de cumplimiento y reportes</p>
-  </div>
-
-  <div class="content-grid">
-    <div class="sidebar">
-      <app-period-selector
-        [periods]="periods"
-        [selectedPeriodId]="selectedPeriod?.id || ''"
-        (periodSelected)="onPeriodSelected($event)">
-      </app-period-selector>
+  <header class="admin-header">
+    <div>
+      <h1 class="admin-title">Administración y Configuración</h1>
+      <p class="admin-subtitle">Auditoría y configuración de estados de cumplimiento de nóminas.</p>
     </div>
+  </header>
 
-    <div class="main-section" *ngIf="selectedPeriod">
-      <app-compliance-table
-        [records]="dailyRecords"
-        [selectedPeriod]="selectedPeriod.month + ' ' + selectedPeriod.year"
-        (statusChange)="onStatusChange($event)"
-        (export)="onExport()">
-      </app-compliance-table>
-    </div>
-    
-    <div class="main-section" *ngIf="!selectedPeriod">
-      <p class="no-selection">Seleccione un período para ver los detalles.</p>
+  <div class="audit-section">
+    <h2 class="section-title">Auditoría de Cumplimiento de Nóminas</h2>
+
+    <div class="content-layout">
+      <!-- Period Selector Sidebar -->
+      <div class="periods-sidebar">
+        <h3 class="sidebar-title">Períodos de Nómina</h3>
+        <div class="periods-list">
+          <div 
+            *ngFor="let period of periods"
+            class="period-item"
+            [class.active]="selectedPeriodId === period.id"
+            (click)="selectPeriod(period.id)">
+            <i class="bi bi-circle-fill period-indicator"></i>
+            {{ period.period }}
+          </div>
+
+          <div *ngIf="periods.length === 0 && !loading" class="no-periods">
+            No hay períodos disponibles
+          </div>
+        </div>
+      </div>
+
+      <!-- Compliance Table -->
+      <div class="compliance-section">
+        <div class="table-header">
+          <h3 class="table-title">Estado de Períodos de Nómina</h3>
+          <div class="table-actions">
+            <input 
+              type="text" 
+              class="filter-input" 
+              [(ngModel)]="filterText"
+              placeholder="Filtrar por período...">
+            <button class="filter-btn">
+              <i class="bi bi-funnel"></i> Filtrar
+            </button>
+            <button class="export-btn" (click)="exportCompliance()">
+              <i class="bi bi-download"></i> Exportar
+            </button>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table class="compliance-table">
+            <thead>
+              <tr>
+                <th>PERÍODO</th>
+                <th>ESTADO</th>
+                <th>ÚLTIMA MODIFICACIÓN</th>
+                <th>PUNTUACIÓN CUMPLIMIENTO</th>
+                <th>ACCIONES</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let period of filteredPeriods">
+                <td class="period-col">{{ period.period }}</td>
+                <td>
+                  <span class="status-badge" [ngClass]="getStatusClass(period.status)">
+                    {{ getStatusLabel(period.status) }}
+                  </span>
+                </td>
+                <td class="date-col">{{ formatDate(period.lastModified) }}</td>
+                <td class="score-col">{{ period.complianceScore }}%</td>
+                <td class="actions-col">
+                  <button class="action-btn" title="Ver detalles">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button class="action-btn" title="Editar">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div *ngIf="filteredPeriods.length === 0 && !loading" class="no-data">
+            No se encontraron períodos
+          </div>
+        </div>
+
+        <div *ngIf="loading" class="loading-state">
+          Cargando datos...
+        </div>
+      </div>
     </div>
   </div>
 </div>
