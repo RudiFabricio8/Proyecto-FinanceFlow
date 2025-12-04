@@ -2,6 +2,7 @@ package com.financeflow.di
 
 import com.financeflow.application.services.AuthService
 import com.financeflow.domain.ports.*
+import com.financeflow.domain.service.DocumentParserService
 import com.financeflow.infrastructure.persistence.*
 import org.koin.dsl.module
 
@@ -17,4 +18,5 @@ val appModule = module {
     
     // Services
     single { AuthService(get(), get()) }
+    single { DocumentParserService() }
 }

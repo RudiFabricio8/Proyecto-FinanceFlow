@@ -55,6 +55,9 @@ dependencies {
     // Password Hashing
     implementation("org.mindrot:jbcrypt:0.4")
 
+    // PDF Processing
+    implementation("org.apache.pdfbox:pdfbox:3.0.1")
+
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
 }

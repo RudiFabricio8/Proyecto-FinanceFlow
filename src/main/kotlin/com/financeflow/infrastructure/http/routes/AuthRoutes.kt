@@ -3,6 +3,7 @@ package com.financeflow.infrastructure.http.routes
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.financeflow.application.services.AuthService
+import com.financeflow.domain.ports.OrganizationRepository
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -60,7 +61,7 @@ fun Route.authRoutes() {
                     fullName = request.fullName,
                     organizationName = request.organizationName
                 )
-                
+
                 val token = JWT.create()
                     .withAudience(jwtAudience)
                     .withIssuer(jwtIssuer)
@@ -69,7 +70,7 @@ fun Route.authRoutes() {
                     .withClaim("role", user.role.name)
                     .withExpiresAt(Date(System.currentTimeMillis() + 86400000))
                     .sign(Algorithm.HMAC256(jwtSecret))
-                
+
                 call.respond(HttpStatusCode.Created, AuthResponse(
                     token = token,
                     user = UserDTO(
@@ -98,6 +99,7 @@ fun Route.authRoutes() {
                     .withClaim("userId", user.id.toString())
                     .withClaim("email", user.email)
                     .withClaim("role", user.role.name)
+                    .withClaim("organizationId", user.organizationId?.toString() ?: "")
                     .withExpiresAt(Date(System.currentTimeMillis() + 86400000))
                     .sign(Algorithm.HMAC256(jwtSecret))
                 
@@ -110,7 +112,7 @@ fun Route.authRoutes() {
                         role = user.role.name
                     ),
                     organization = OrganizationDTO(
-                        id = "", // TODO: Get user's organization
+                        id = user.organizationId?.toString() ?: "",
                         name = ""
                     )
                 ))

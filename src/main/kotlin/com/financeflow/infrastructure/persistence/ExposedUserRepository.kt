@@ -20,6 +20,7 @@ class ExposedUserRepository : UserRepository {
     override suspend fun create(user: User): User = dbQuery {
         Users.insert {
             it[id] = user.id
+            it[organizationId] = user.organizationId
             it[email] = user.email
             it[passwordHash] = user.passwordHash
             it[fullName] = user.fullName
@@ -39,6 +40,7 @@ class ExposedUserRepository : UserRepository {
 
     private fun resultRowToUser(row: ResultRow) = User(
         id = row[Users.id],
+        organizationId = row[Users.organizationId],
         email = row[Users.email],
         passwordHash = row[Users.passwordHash],
         fullName = row[Users.fullName],

@@ -21,6 +21,7 @@ class ExposedPayrollPeriodRepository : PayrollPeriodRepository {
             it[totalGrossSalary] = period.totalGrossSalary
             it[totalDeductions] = period.totalDeductions
             it[totalNetSalary] = period.totalNetSalary
+            it[complianceScore] = period.complianceScore
             it[notes] = period.notes
             it[createdBy] = period.createdBy
             it[createdAt] = period.createdAt
@@ -58,6 +59,7 @@ class ExposedPayrollPeriodRepository : PayrollPeriodRepository {
             it[totalGrossSalary] = period.totalGrossSalary
             it[totalDeductions] = period.totalDeductions
             it[totalNetSalary] = period.totalNetSalary
+            it[complianceScore] = period.complianceScore
             it[notes] = period.notes
             it[updatedAt] = period.updatedAt
         }
@@ -78,6 +80,7 @@ class ExposedPayrollPeriodRepository : PayrollPeriodRepository {
         totalGrossSalary = row[PayrollPeriods.totalGrossSalary],
         totalDeductions = row[PayrollPeriods.totalDeductions],
         totalNetSalary = row[PayrollPeriods.totalNetSalary],
+        complianceScore = row[PayrollPeriods.complianceScore],
         notes = row[PayrollPeriods.notes],
         createdBy = row[PayrollPeriods.createdBy],
         createdAt = row[PayrollPeriods.createdAt],

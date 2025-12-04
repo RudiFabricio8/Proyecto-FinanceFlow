@@ -6,6 +6,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
+import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.Serializable
 import org.koin.ktor.ext.inject
@@ -13,10 +14,26 @@ import java.time.LocalDate
 import java.util.UUID
 
 @Serializable
+data class PeriodSummary(
+    val id: String,
+    val name: String,
+    val status: String,
+    val lastModified: String,
+    val complianceScore: Int
+)
+
+@Serializable
+data class UpdateStatusRequest(val status: String)
+
+@Serializable
+data class UpdateScoreRequest(val score: Int)
+
+@Serializable
 data class ComplianceResponse(
     val year: Int,
     val month: Int,
     val dailyRecords: List<DailyComplianceRecord>,
+    val periods: List<PeriodSummary>,
     val summary: ComplianceSummary
 )
 
@@ -52,11 +69,18 @@ fun Route.adminRoutes() {
                 val allPeriods = periodRepository.findByOrganizationId(orgId)
                 
                 // Filter periods by year/month
-                val filteredPeriods = allPeriods.filter { period ->
-                    period.startDate.year == year && period.startDate.monthValue == month
+                val filteredPeriods = allPeriods // No filter, show all periods
+                
+                val periodSummaries = filteredPeriods.map { period ->
+                    PeriodSummary(
+                        id = period.id.toString(),
+                        name = period.name,
+                        status = period.status.name,
+                        lastModified = period.updatedAt?.toString() ?: period.createdAt?.toString() ?: "",
+                        complianceScore = period.complianceScore
+                    )
                 }
                 
-                // Group by date
                 val dailyRecords = filteredPeriods.groupBy { it.startDate }
                     .map { (date, periods) ->
                         DailyComplianceRecord(
@@ -79,6 +103,7 @@ fun Route.adminRoutes() {
                     year = year,
                     month = month,
                     dailyRecords = dailyRecords,
+                    periods = periodSummaries,
                     summary = summary
                 ))
             }
@@ -87,8 +112,50 @@ fun Route.adminRoutes() {
                 val organizationId = call.request.queryParameters["organizationId"]
                     ?: return@get call.respond(HttpStatusCode.BadRequest, mapOf("error" to "organizationId required"))
                 
-                // TODO: Implement CSV/Excel export
                 call.respond(HttpStatusCode.NotImplemented, mapOf("message" to "Export feature coming soon"))
+            }
+            
+            put("/periods/{id}/status") {
+                val id = call.parameters["id"]
+                    ?: return@put call.respond(HttpStatusCode.BadRequest, mapOf("error" to "id required"))
+                val request = call.receive<UpdateStatusRequest>()
+                
+                val period = periodRepository.findById(UUID.fromString(id))
+                    ?: return@put call.respond(HttpStatusCode.NotFound, mapOf("error" to "Period not found"))
+                
+                val newStatus = try {
+                    PeriodStatus.valueOf(request.status)
+                } catch (e: IllegalArgumentException) {
+                    return@put call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid status"))
+                }
+                
+                val updatedPeriod = period.copy(
+                    status = newStatus,
+                    updatedAt = java.time.Instant.now()
+                )
+                
+                periodRepository.update(updatedPeriod)
+                call.respond(HttpStatusCode.OK, mapOf("message" to "Status updated"))
+            }
+            
+            put("/periods/{id}/score") {
+                val id = call.parameters["id"]
+                    ?: return@put call.respond(HttpStatusCode.BadRequest, mapOf("error" to "id required"))
+                val request = call.receive<UpdateScoreRequest>()
+                
+                val period = periodRepository.findById(UUID.fromString(id))
+                    ?: return@put call.respond(HttpStatusCode.NotFound, mapOf("error" to "Period not found"))
+                
+                val updatedPeriod = period.copy(
+                    complianceScore = request.score,
+                    updatedAt = java.time.Instant.now()
+                )
+                
+                periodRepository.update(updatedPeriod)
+                call.respond(HttpStatusCode.OK, mapOf("message" to "Score updated"))
+            }
+            
+            get("/compliance/export") {
             }
         }
     }

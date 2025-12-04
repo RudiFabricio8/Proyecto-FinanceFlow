@@ -6,6 +6,7 @@ import org.jetbrains.exposed.sql.javatime.timestamp
 
 object Users : Table("users") {
     val id = uuid("id")
+    val organizationId = uuid("organization_id").nullable()  // Changed from reference to simple UUID to avoid circular dependency
     val email = varchar("email", 255).uniqueIndex()
     val passwordHash = varchar("password_hash", 255)
     val fullName = varchar("full_name", 255)
@@ -13,7 +14,7 @@ object Users : Table("users") {
     val isActive = bool("is_active").default(true)
     val createdAt = timestamp("created_at").nullable()
     val updatedAt = timestamp("updated_at").nullable()
-    
+
     override val primaryKey = PrimaryKey(id)
 }
 
@@ -26,7 +27,7 @@ object Organizations : Table("organizations") {
     val phone = varchar("phone", 50).nullable()
     val createdAt = timestamp("created_at").nullable()
     val updatedAt = timestamp("updated_at").nullable()
-    
+
     override val primaryKey = PrimaryKey(id)
 }
 
@@ -40,11 +41,12 @@ object PayrollPeriods : Table("payroll_periods") {
     val totalGrossSalary = decimal("total_gross_salary", 15, 2).default(java.math.BigDecimal.ZERO)
     val totalDeductions = decimal("total_deductions", 15, 2).default(java.math.BigDecimal.ZERO)
     val totalNetSalary = decimal("total_net_salary", 15, 2).default(java.math.BigDecimal.ZERO)
+    val complianceScore = integer("compliance_score").default(0)
     val notes = text("notes").nullable()
     val createdBy = reference("created_by", Users.id)
     val createdAt = timestamp("created_at").nullable()
     val updatedAt = timestamp("updated_at").nullable()
-    
+
     override val primaryKey = PrimaryKey(id)
 }
 
@@ -63,7 +65,7 @@ object Documents : Table("documents") {
     val extractedDate = date("extracted_date").nullable()
     val uploadedBy = reference("uploaded_by", Users.id)
     val uploadedAt = timestamp("uploaded_at").nullable()
-    
+
     override val primaryKey = PrimaryKey(id)
 }
 
@@ -77,7 +79,7 @@ object PayrollFormulas : Table("payroll_formulas") {
     val createdBy = reference("created_by", Users.id)
     val createdAt = timestamp("created_at").nullable()
     val updatedAt = timestamp("updated_at").nullable()
-    
+
     override val primaryKey = PrimaryKey(id)
 }
 
@@ -91,7 +93,7 @@ object PayrollCalculations : Table("payroll_calculations") {
     val calculationSteps = text("calculation_steps").nullable() // JSON serialized
     val calculatedBy = reference("calculated_by", Users.id)
     val calculatedAt = timestamp("calculated_at").nullable()
-    
+
     override val primaryKey = PrimaryKey(id)
 }
 
@@ -106,7 +108,7 @@ object Notifications : Table("notifications") {
     val relatedEntityType = varchar("related_entity_type", 100).nullable()
     val relatedEntityId = uuid("related_entity_id").nullable()
     val createdAt = timestamp("created_at").nullable()
-    
+
     override val primaryKey = PrimaryKey(id)
 }
 
@@ -121,6 +123,6 @@ object AuditLogs : Table("audit_logs") {
     val ipAddress = varchar("ip_address", 50).nullable()
     val userAgent = text("user_agent").nullable()
     val createdAt = timestamp("created_at").nullable()
-    
+
     override val primaryKey = PrimaryKey(id)
 }

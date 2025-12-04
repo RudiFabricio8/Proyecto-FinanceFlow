@@ -3,7 +3,13 @@ package com.financeflow.infrastructure.http.routes
 import com.financeflow.domain.model.Document
 import com.financeflow.domain.ports.DocumentRepository
 import com.financeflow.domain.valueobject.DocumentType
+import com.financeflow.domain.service.NotificationService
+import com.financeflow.domain.ports.PayrollPeriodRepository
 import com.financeflow.domain.valueobject.UploadStatus
+import com.financeflow.domain.valueobject.PeriodStatus
+import com.financeflow.domain.model.PayrollPeriod
+import java.math.BigDecimal
+import java.time.LocalDate
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
@@ -17,6 +23,8 @@ import org.koin.ktor.ext.inject
 import java.io.File
 import java.time.Instant
 import java.util.UUID
+import com.financeflow.domain.ports.NotificationRepository
+import com.financeflow.domain.service.DocumentParserService
 
 @Serializable
 data class DocumentResponse(
@@ -47,6 +55,10 @@ data class DocumentListResponse(
 
 fun Route.documentRoutes() {
     val documentRepository by inject<DocumentRepository>()
+    val notificationRepository by inject<NotificationRepository>()
+    val notificationService = NotificationService(notificationRepository)
+    val documentParserService by inject<DocumentParserService>()
+    val payrollPeriodRepository by inject<PayrollPeriodRepository>()
 
     route("/documents") {
         authenticate("auth-jwt") {
@@ -82,7 +94,6 @@ fun Route.documentRoutes() {
                     return@post call.respond(HttpStatusCode.BadRequest, mapOf("error" to "File and organizationId required"))
                 }
                 
-                // Save file to disk (simple implementation)
                 val uploadDir = File("uploads")
                 if (!uploadDir.exists()) uploadDir.mkdirs()
                 
@@ -105,7 +116,55 @@ fun Route.documentRoutes() {
                 )
                 
                 val created = documentRepository.create(document)
-                call.respond(HttpStatusCode.Created, created.toResponse())
+                
+
+                try {
+                    val pdfFile = File(created.filePath)
+                    val metadata = documentParserService.parseDocument(pdfFile, "application/pdf")
+                    
+                    val period = PayrollPeriod(
+                        id = UUID.randomUUID(),
+                        organizationId = organizationId!!,
+                        name = fileName,
+                        startDate = metadata.date ?: java.time.LocalDate.now(),
+                        endDate = (metadata.date ?: java.time.LocalDate.now()).plusMonths(1),
+                        status = PeriodStatus.DRAFT,
+                        totalGrossSalary = metadata.amount?.let { java.math.BigDecimal.valueOf(it) } ?: java.math.BigDecimal.ZERO,
+                        totalDeductions = java.math.BigDecimal.ZERO,
+                        complianceScore = 0,
+                        createdBy = UUID.fromString(userId),
+                        createdAt = Instant.now(),
+                        updatedAt = Instant.now()
+                    )
+                    payrollPeriodRepository.create(period)
+                    
+                    val updatedDocument = created.copy(
+                        extractedAmount = metadata.amount?.toBigDecimal(),
+                        extractedDate = metadata.date,
+                        payrollPeriodId = period.id
+                    )
+                    documentRepository.update(updatedDocument)
+                } catch (e: Exception) {
+                    println("Error parsing document: ${e.message}")
+                    documentRepository.update(created)
+                }
+                
+                // Return the created or updated document
+                val responseDocument = documentRepository.findById(created.id) ?: created
+
+                try {
+    kotlinx.coroutines.runBlocking {
+        notificationService.createDocumentUploadSuccess(
+            userId = UUID.fromString(userId),
+            documentId = fileId,
+            fileName = fileName
+        )
+    }
+} catch (e: Exception) {
+    println("Error creating upload notification: ${e.message}")
+}
+
+call.respond(HttpStatusCode.Created, created.toResponse())
             }
 
             get {

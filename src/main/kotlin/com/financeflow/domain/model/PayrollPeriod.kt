@@ -16,6 +16,7 @@ data class PayrollPeriod(
     val totalGrossSalary: BigDecimal = BigDecimal.ZERO,
     val totalDeductions: BigDecimal = BigDecimal.ZERO,
     val totalNetSalary: BigDecimal = BigDecimal.ZERO,
+    val complianceScore: Int = 0,
     val notes: String? = null,
     val createdBy: UUID,
     val createdAt: Instant? = null,
