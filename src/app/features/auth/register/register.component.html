@@ -4,9 +4,15 @@
 
   <form [formGroup]="form" (ngSubmit)="onSubmit()">
     <div>
-      <label for="company">Nombre de la Empresa</label>
-      <input id="company" type="text" formControlName="company" placeholder="Tu Empresa S.A." />
-      <small *ngIf="f['company'].touched && f['company'].invalid">Ingresa un nombre válido (mín. 2 caracteres).</small>
+      <label for="organizationName">Nombre de la  Organización</label>
+      <input id="organizationName" type="text" formControlName="organizationName" placeholder="Tu Empresa S.A." />
+      <small *ngIf="f['organizationName'].touched && f['organizationName'].invalid">Ingresa un nombre válido (mín. 2 caracteres).</small>
+    </div>
+
+    <div>
+      <label for="fullName">Nombre Completo</label>
+      <input id="fullName" type="text" formControlName="fullName" placeholder="Juan Pérez" />
+      <small *ngIf="f['fullName'].touched && f['fullName'].invalid">Ingresa tu nombre completo (mín. 2 caracteres).</small>
     </div>
 
     <div>

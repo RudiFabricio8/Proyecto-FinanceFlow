@@ -1,7 +1,9 @@
 // src/app/features/admin/admin.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { PayrollPeriod, DailyPayrollRecord, ComplianceStatus } from '../../core/models/payroll-period.model';
+import { PayrollPeriod as UiPayrollPeriod, DailyPayrollRecord, ComplianceStatus } from '../../core/models/payroll-period.model';
+import { PayrollService } from '../../core/services/payroll.service';
+import { PayrollPeriod as ApiPayrollPeriod, PayrollCalculation } from '../../core/models/payroll.model';
 import { PeriodSelectorComponent } from './components/period-selector/period-selector';
 import { ComplianceTableComponent } from './components/compliance-table/compliance-table';
 import { ExportService } from '../../core/services/export';
@@ -14,68 +16,80 @@ import { ExportService } from '../../core/services/export';
   styleUrl: './admin.scss'
 })
 export class Admin implements OnInit {
-  periods: PayrollPeriod[] = [
-    { id: '1', month: 'Julio', year: 2024, isActive: true },
-    { id: '2', month: 'Junio', year: 2024, isActive: false },
-    { id: '3', month: 'Mayo', year: 2024, isActive: false },
-    { id: '4', month: 'Abril', year: 2024, isActive: false }
-  ];
-
-  selectedPeriod: PayrollPeriod = this.periods[0];
+  periods: UiPayrollPeriod[] = [];
+  selectedPeriod: UiPayrollPeriod | null = null;
   dailyRecords: DailyPayrollRecord[] = [];
+  loading = false;
 
-  constructor(private exportService: ExportService) {}
+  constructor(
+    private payrollService: PayrollService,
+    private exportService: ExportService
+  ) {}
 
   ngOnInit(): void {
-    this.loadDailyRecords(this.selectedPeriod);
+    this.loadPeriods();
   }
 
-  onPeriodSelected(period: PayrollPeriod): void {
+  loadPeriods(): void {
+    this.loading = true;
+    this.payrollService.listPeriods().subscribe({
+      next: (apiPeriods) => {
+        this.periods = apiPeriods.map(p => this.mapToUiPeriod(p));
+        if (this.periods.length > 0) {
+          this.onPeriodSelected(this.periods[0]);
+        }
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error loading periods', err);
+        this.loading = false;
+      }
+    });
+  }
+
+  onPeriodSelected(period: UiPayrollPeriod): void {
     this.periods.forEach(p => p.isActive = p.id === period.id);
     this.selectedPeriod = period;
     this.loadDailyRecords(period);
   }
 
-  loadDailyRecords(period: PayrollPeriod): void {
-    const daysInMonth = this.getDaysInMonth(period.year, period.month);
-    this.dailyRecords = [];
-
-    for (let day = 1; day <= daysInMonth; day++) {
-      const dayStr = day.toString().padStart(2, '0');
-      this.dailyRecords.push({
-        id: `${period.id}-${day}`,
-        date: `${dayStr} ${period.month} ${period.year}`,
-        status: this.getRandomStatus(),
-        lastModified: `${period.year}-${this.getMonthNumber(period.month)}-${dayStr} ${this.getRandomTime()}`,
-        complianceScore: Math.floor(Math.random() * 30) + 70
-      });
-    }
+  loadDailyRecords(period: UiPayrollPeriod): void {
+    // Ideally we filter by periodId, but listCalculations might return all or we need to filter client-side
+    // if the API doesn't support filtering by periodId yet (it does in our implementation plan but let's check service)
+    // The service has listCalculations(periodId?: string).
+    
+    this.payrollService.listCalculations(period.id).subscribe({
+      next: (calculations) => {
+        this.dailyRecords = calculations.map(c => this.mapToDailyRecord(c));
+      },
+      error: (err) => console.error('Error loading calculations', err)
+    });
   }
 
-  getDaysInMonth(year: number, monthName: string): number {
-    const monthNumber = this.getMonthNumber(monthName);
-    return new Date(year, monthNumber, 0).getDate();
-  }
-
-  getMonthNumber(monthName: string): number {
-    const months: { [key: string]: number } = {
-      'Enero': 1, 'Febrero': 2, 'Marzo': 3, 'Abril': 4,
-      'Mayo': 5, 'Junio': 6, 'Julio': 7, 'Agosto': 8,
-      'Septiembre': 9, 'Octubre': 10, 'Noviembre': 11, 'Diciembre': 12
+  private mapToUiPeriod(apiPeriod: ApiPayrollPeriod): UiPayrollPeriod {
+    const date = new Date(apiPeriod.startDate);
+    const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    
+    return {
+      id: apiPeriod.id,
+      month: monthNames[date.getMonth()],
+      year: date.getFullYear(),
+      isActive: false
     };
-    return months[monthName];
   }
 
-  getRandomStatus(): ComplianceStatus {
-    const statuses: ComplianceStatus[] = ['approved', 'processed', 'draft', 'cancelled'];
-    return statuses[Math.floor(Math.random() * statuses.length)];
-  }
-
-  getRandomTime(): string {
-    const hour = Math.floor(Math.random() * 12) + 1;
-    const minute = Math.floor(Math.random() * 60);
-    const ampm = Math.random() > 0.5 ? 'AM' : 'PM';
-    return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')} ${ampm}`;
+  private mapToDailyRecord(calc: PayrollCalculation): DailyPayrollRecord {
+    const date = new Date(calc.executedAt);
+    const dayStr = date.getDate().toString().padStart(2, '0');
+    const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    
+    return {
+      id: calc.id,
+      date: `${dayStr} ${monthNames[date.getMonth()]} ${date.getFullYear()}`,
+      status: 'processed', // Default status as calculations are usually processed
+      lastModified: date.toLocaleString(),
+      complianceScore: 100 // Mock score as we don't have it in calculation
+    };
   }
 
   onStatusChange(data: { id: string; status: ComplianceStatus }): void {
@@ -87,6 +101,8 @@ export class Admin implements OnInit {
   }
 
   onExport(): void {
+    if (!this.selectedPeriod) return;
+    
     console.log('Exportando datos de:', this.selectedPeriod.month, this.selectedPeriod.year);
     
     const dataToExport = this.dailyRecords.map(r => ({

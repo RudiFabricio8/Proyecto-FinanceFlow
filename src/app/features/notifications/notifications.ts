@@ -2,7 +2,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { Alert } from '../../core/models/notification.model';
+import { Alert, Notification, NotificationSeverity } from '../../core/models/notification.model';
+import { NotificationsService } from '../../core/services/notifications.service';
 import { AlertCardComponent } from './components/alert-card/alert-card';
 
 @Component({
@@ -13,87 +14,79 @@ import { AlertCardComponent } from './components/alert-card/alert-card';
   styleUrl: './notifications.scss'
 })
 export class Notifications implements OnInit {
-  alerts: Alert[] = [
-    {
-      id: '1',
-      priority: 'urgent',
-      title: 'Urgente: Discrepancia en Nómina Detectada',
-      message: 'Se ha identificado una variación significativa en el procesamiento de nómina para el Q3. Se requiere revisión inmediata.',
-      timestamp: 'Justo ahora',
-      primaryAction: 'investigate',
-      primaryActionLabel: 'Investigar'
-    },
-    {
-      id: '2',
-      priority: 'action',
-      title: 'Acción Requerida: Pago de Factura Vencido',
-      message: 'La factura #INV-2024-00123 de "Tech Solutions Inc." está vencida por 3 días.',
-      timestamp: 'Hace 5 minutos',
-      primaryAction: 'processPayment',
-      primaryActionLabel: 'Procesar Pago'
-    },
-    {
-      id: '3',
-      priority: 'info',
-      title: 'Nueva Carga de Documento: Reporte Financiero Q2',
-      message: 'El último reporte financiero trimestral ha sido cargado y está listo para revisión.',
-      timestamp: 'Hace 30 minutos',
-      primaryAction: 'viewReport',
-      primaryActionLabel: 'Ver Reporte'
-    },
-    {
-      id: '4',
-      priority: 'reminder',
-      title: 'Recordatorio: Fecha Límite de Impuestos Próxima',
-      message: 'La fecha límite para presentar impuestos estimados del Q4 se acerca (15 días restantes).',
-      timestamp: 'Hace 1 hora',
-      primaryAction: 'viewCalendar',
-      primaryActionLabel: 'Ver Calendario Fiscal'
-    },
-    {
-      id: '5',
-      priority: 'reminder',
-      title: 'Actualización del Sistema: Nueva Función Implementada',
-      message: 'Se han implementado exitosamente nuevas funciones de categorización de gastos.',
-      timestamp: 'Ayer',
-      primaryAction: 'learnMore',
-      primaryActionLabel: 'Saber Más'
-    }
-  ];
+  alerts: Alert[] = [];
+  loading = true;
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private notificationsService: NotificationsService
+  ) {}
 
   ngOnInit(): void {
-    // Inicialización del componente
+    this.loadNotifications();
+  }
+
+  loadNotifications(): void {
+    this.loading = true;
+    this.notificationsService.listNotifications().subscribe({
+      next: (notifications) => {
+        this.alerts = notifications.map(n => this.mapToAlert(n));
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error loading notifications', err);
+        this.loading = false;
+      }
+    });
   }
 
   dismissAlert(id: string): void {
-    console.log('Descartando alerta:', id);
-    this.alerts = this.alerts.filter(a => a.id !== id);
+    this.notificationsService.markAsRead(id).subscribe({
+      next: () => {
+        this.alerts = this.alerts.filter(a => a.id !== id);
+      },
+      error: (err) => console.error('Error marking notification as read', err)
+    });
   }
 
   handleAction(alertItem: Alert): void {
-  console.log('Acción ejecutada:', alertItem.primaryAction, 'para alerta:', alertItem.id);
-  
-  // Mapeo de acciones a rutas
-  const actionRoutes: { [key: string]: string } = {
-    'investigate': '/dashboard',
-    'processPayment': '/receipts',
-    'viewReport': '/analytics',
-    'viewCalendar': '/admin',
-    'learnMore': '/help'
-  };
-
-  const route = actionRoutes[alertItem.primaryAction];
-  
-  if (route) {
-    // Mostrar mensaje antes de navegar
-    window.alert(`Navegando a ${route} para: ${alertItem.title}`);
+    console.log('Acción ejecutada:', alertItem.primaryAction, 'para alerta:', alertItem.id);
     
-    // Navegar a la ruta
-    this.router.navigate([route]);
-  } else {
-    window.alert('Esta funcionalidad estará disponible próximamente');
+    // Mapeo de acciones a rutas
+    const actionRoutes: { [key: string]: string } = {
+      'investigate': '/dashboard',
+      'processPayment': '/receipts',
+      'viewReport': '/analytics',
+      'viewCalendar': '/admin',
+      'learnMore': '/help'
+    };
+
+    const route = actionRoutes[alertItem.primaryAction || ''] || '/dashboard';
+    
+    if (route) {
+      this.router.navigate([route]);
+    }
   }
-}
+
+  private mapToAlert(notification: Notification): Alert {
+    return {
+      id: notification.id,
+      priority: this.mapSeverityToPriority(notification.severity),
+      title: notification.title,
+      message: notification.message,
+      timestamp: new Date(notification.createdAt).toLocaleString(),
+      primaryAction: 'investigate', // Default action, could be derived from type
+      primaryActionLabel: 'Ver Detalles'
+    };
+  }
+
+  private mapSeverityToPriority(severity: NotificationSeverity): 'urgent' | 'action' | 'info' | 'reminder' {
+    switch (severity) {
+      case 'ERROR': return 'urgent';
+      case 'WARNING': return 'action';
+      case 'INFO': return 'info';
+      case 'SUCCESS': return 'info';
+      default: return 'info';
+    }
+  }
 }

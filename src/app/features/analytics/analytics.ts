@@ -2,6 +2,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AnalyticsChapter } from '../../core/models/analytics.model';
+import { AnalyticsService, AnalyticsOverview } from '../../core/services/analytics.service';
 import { ChapterAccordion } from './components/chapter-accordion/chapter-accordion';
 
 @Component({
@@ -13,14 +14,24 @@ import { ChapterAccordion } from './components/chapter-accordion/chapter-accordi
 })
 export class Analytics implements OnInit {
   chapters: AnalyticsChapter[] = [];
+  overview: AnalyticsOverview | null = null;
+  loading = true;
+  error = '';
+
+  constructor(private analyticsService: AnalyticsService) {}
 
   ngOnInit(): void {
+    this.initChapters();
+    this.loadData();
+  }
+
+  private initChapters(): void {
     this.chapters = [
       {
         id: '1',
         title: 'Capítulo 1: Entendiendo el Costo Total de Nómina',
         description: 'El costo total de nómina es un indicador fundamental para la salud financiera de la empresa. Aquí, desglosamos las cifras que componen este gasto vital.',
-        isExpanded: false
+        isExpanded: true
       },
       {
         id: '2',
@@ -37,10 +48,24 @@ export class Analytics implements OnInit {
     ];
   }
 
+  private loadData(): void {
+    this.analyticsService.getOverview().subscribe({
+      next: (data) => {
+        this.overview = data;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error loading analytics', err);
+        this.error = 'Error al cargar datos analíticos';
+        this.loading = false;
+      }
+    });
+  }
+
   toggleChapter(id: string): void {
     this.chapters = this.chapters.map(ch => ({
       ...ch,
-      isExpanded: ch.id === id ? !ch.isExpanded : ch.isExpanded
+      isExpanded: ch.id === id ? !ch.isExpanded : false // Close others for accordion effect
     }));
   }
 }

@@ -1,25 +1,31 @@
+// Payroll Formula
 export interface PayrollFormula {
   id: string;
+  organizationId: string;
   concept: string;
   description: string;
   formula: string;
   createdAt: string;
 }
 
+// Payroll Calculation
 export interface PayrollCalculation {
   id: string;
   formulaId: string;
-  concept: string;
+  periodId: string;
   inputs: { [key: string]: number };
   result: number;
-  process: string[];
-  calculatedAt: string;
+  executedAt: string;
 }
 
-export interface PayrollPeriodData {
+// Payroll Period
+export interface PayrollPeriod {
   id: string;
+  organizationId: string;
   period: string;
-  totalAmount: number;
-  employees: number;
-  status: 'draft' | 'pending' | 'approved' | 'processed';
+  status: 'DRAFT' | 'PROCESSED' | 'PAUSED';
+  startDate: string;
+  endDate: string;
+  createdAt: string;
+  updatedAt: string;
 }

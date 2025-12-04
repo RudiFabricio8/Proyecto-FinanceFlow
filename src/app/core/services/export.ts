@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { Transaction } from '../models/transaction.model';
 
 @Injectable({
   providedIn: 'root'
@@ -47,24 +48,24 @@ export class ExportService {
   }
 
   // Exportar transacciones a Excel
-  exportTransactionsToExcel(transactions: any[]): void {
+  exportTransactionsToExcel(transactions: Transaction[]): void {
     const dataToExport = transactions.map(t => ({
       'Fecha': t.date,
       'Descripción': t.description,
       'Categoría': t.category,
-      'Monto': t.isPositive ? `+$${t.amount.toFixed(2)}` : `-$${t.amount.toFixed(2)}`
+      'Monto': t.type === 'INCOME' ? `+$${t.amount.toFixed(2)}` : `-$${t.amount.toFixed(2)}`
     }));
 
     this.exportToExcel(dataToExport, 'Transacciones');
   }
 
   // Exportar transacciones a PDF
-  exportTransactionsToPDF(transactions: any[]): void {
+  exportTransactionsToPDF(transactions: Transaction[]): void {
     const dataToExport = transactions.map(t => ({
       date: t.date,
       description: t.description,
       category: t.category,
-      amount: t.isPositive ? `+$${t.amount.toFixed(2)}` : `-$${t.amount.toFixed(2)}`
+      amount: t.type === 'INCOME' ? `+$${t.amount.toFixed(2)}` : `-$${t.amount.toFixed(2)}`
     }));
 
     this.exportToPDF(

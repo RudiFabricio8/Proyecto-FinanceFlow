@@ -1,7 +1,8 @@
 // src/app/features/payroll/payroll.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { PayrollFormula, PayrollCalculation, PayrollPeriodData } from '../../core/models/payroll.model';
+import { PayrollFormula, PayrollCalculation, PayrollPeriod } from '../../core/models/payroll.model';
+import { PayrollService } from '../../core/services/payroll.service';
 import { FormulaCalculatorComponent } from './components/formula-calculator/formula-calculator';
 import { SavedFormulasComponent } from './components/saved-formulas/saved-formulas';
 import { CalculationModalComponent } from './components/calculation-modal/calculation-modal';
@@ -19,41 +20,85 @@ export class Payroll implements OnInit {
   formulas: PayrollFormula[] = [];
   currentCalculation: PayrollCalculation | null = null;
   showModal = false;
-  periods: PayrollPeriodData[] = [];
+  periods: PayrollPeriod[] = [];
+  loading = false;
+  error = '';
 
-  constructor(private exportService: ExportService) {}
+  constructor(
+    private payrollService: PayrollService,
+    private exportService: ExportService
+  ) {}
 
   ngOnInit(): void {
     this.loadPeriods();
+    this.loadFormulas();
   }
 
-  onSaveFormula(formula: PayrollFormula): void {
-    this.formulas.push(formula);
-    alert('Fórmula guardada exitosamente');
+  loadPeriods(): void {
+    this.loading = true;
+    this.payrollService.listPeriods().subscribe({
+      next: (data) => {
+        this.periods = data;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error loading periods', err);
+        this.error = 'Error al cargar períodos';
+        this.loading = false;
+      }
+    });
+  }
+
+  loadFormulas(): void {
+    this.payrollService.listFormulas().subscribe({
+      next: (data) => {
+        this.formulas = data;
+      },
+      error: (err) => console.error('Error loading formulas', err)
+    });
+  }
+
+  onSaveFormula(formulaData: any): void {
+    // formulaData comes from the component, likely needs adaptation to CreateFormulaRequest
+    const request = {
+      concept: formulaData.concept,
+      description: formulaData.description || '',
+      formula: formulaData.formula
+    };
+
+    this.payrollService.createFormula(request).subscribe({
+      next: (newFormula) => {
+        this.formulas.push(newFormula);
+        alert('Fórmula guardada exitosamente');
+      },
+      error: (err) => {
+        console.error('Error saving formula', err);
+        alert('Error al guardar la fórmula');
+      }
+    });
   }
 
   onCalculate(data: any): void {
-    const { concept, inputs } = data;
+    // This is a local calculation simulation. 
+    // Ideally we should use payrollService.executeFormula if we had a formulaId.
+    // For now, we keep the local logic but map it to the new structure if needed, 
+    // or better, if we are creating a new calculation, we might not send it to backend yet 
+    // unless we want to persist it.
+    
+    const { inputs } = data;
     const result = inputs.baseSalary + (inputs.overtimeHours * 50 * 1.5) + inputs.bonuses;
     
     const calculation: PayrollCalculation = {
       id: Date.now().toString(),
-      formulaId: '',
-      concept,
+      formulaId: '', // No formula ID for ad-hoc calculation
+      periodId: '', // No period assigned yet
       inputs,
       result,
-      process: [
-        `Salario Base: $${inputs.baseSalary}`,
-        `Horas Extra: ${inputs.overtimeHours} * $50 * 1.5 = $${(inputs.overtimeHours * 50 * 1.5).toFixed(2)}`,
-        `Bonos: $${inputs.bonuses}`,
-        `Total: $${result.toFixed(2)}`
-      ],
-      calculatedAt: new Date().toISOString()
+      executedAt: new Date().toISOString()
     };
 
     this.currentCalculation = calculation;
     this.showModal = true;
-    this.updatePeriods(result);
   }
 
   onCloseModal(): void {
@@ -62,36 +107,20 @@ export class Payroll implements OnInit {
 
   onExportPdf(calculation: PayrollCalculation): void {
     const data = [{
-      'Concepto': calculation.concept,
+      'ID': calculation.id,
       'Resultado': `$${calculation.result.toFixed(2)}`,
-      'Fecha': new Date(calculation.calculatedAt).toLocaleString()
+      'Fecha': new Date(calculation.executedAt).toLocaleString()
     }];
-    this.exportService.exportToExcel(data, `Calculo_${calculation.concept}`);
+    this.exportService.exportToExcel(data, `Calculo_${calculation.id}`);
   }
 
   onExportPeriods(): void {
     const data = this.periods.map(p => ({
       'Período': p.period,
-      'Monto': `$${p.totalAmount.toFixed(2)}`,
-      'Empleados': p.employees,
-      'Estado': p.status
+      'Estado': p.status,
+      'Inicio': p.startDate,
+      'Fin': p.endDate
     }));
     this.exportService.exportToExcel(data, 'Periodos_Nomina');
-  }
-
-  private loadPeriods(): void {
-    this.periods = [
-      { id: '1', period: 'Jul 2024', totalAmount: 78500, employees: 125, status: 'processed' },
-      { id: '2', period: 'Jun 2024', totalAmount: 77200, employees: 124, status: 'approved' },
-      { id: '3', period: 'May 2024', totalAmount: 76800, employees: 124, status: 'approved' },
-      { id: '4', period: 'Apr 2024', totalAmount: 78000, employees: 125, status: 'processed' }
-    ];
-  }
-
-  private updatePeriods(amount: number): void {
-    // Actualizar el primer período con el nuevo cálculo
-    if (this.periods.length > 0) {
-      this.periods[0].totalAmount += amount;
-    }
   }
 }
