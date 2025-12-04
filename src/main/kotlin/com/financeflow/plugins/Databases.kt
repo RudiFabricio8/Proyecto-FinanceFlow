@@ -10,9 +10,9 @@ import com.zaxxer.hikari.HikariDataSource
 
 fun Application.configureDatabases() {
     // Lectura de configuración con tus valores por defecto
-    val dbUrl = environment.config.propertyOrNull("db.jdbcUrl")?.getString() ?: "jdbc:postgresql://localhost:5432/financeflow"
+        val dbUrl = environment.config.propertyOrNull("db.jdbcUrl")?.getString() ?: "jdbc:postgresql://financeflow.cdhomxkzf2ra.us-east-1.rds.amazonaws.com:5432/postgres"
     val dbUser = environment.config.propertyOrNull("db.user")?.getString() ?: "postgres"
-    val dbPassword = environment.config.propertyOrNull("db.password")?.getString() ?: "RFMaJa775"
+    val dbPassword = environment.config.propertyOrNull("db.password")?.getString() ?: ">kdp<Y9Nl.p|l6Zw]a4*ECG4X-n)"
     val dbDriver = environment.config.propertyOrNull("db.driver")?.getString() ?: "org.postgresql.Driver"
 
     val config = HikariConfig().apply {

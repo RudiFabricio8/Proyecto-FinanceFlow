@@ -37,7 +37,7 @@ dependencies {
     implementation("io.ktor:ktor-server-status-pages-jvm:$ktor_version")
 
     // Logging
-    implementation("ch.qos.logback:logback-classic:$logback_version")
+    implementation("ch.qos.logback:logback-classic:1.5.13")
 
     // Database (Exposed + Postgres)
     implementation("org.jetbrains.exposed:exposed-core:$exposed_version")
