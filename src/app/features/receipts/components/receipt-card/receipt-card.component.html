@@ -1,17 +1,19 @@
 <div class="receipt-card">
-  <div class="receipt-card__header">
-    <h3 class="receipt-card__title">{{ title }}</h3>
-    <span class="receipt-card__date">{{ date }}</span>
+  <div class="card-icon">
+    <i [class]="getDocumentIcon()"></i>
   </div>
-  <div class="receipt-card__body">
-    <p class="receipt-card__provider">
-      <strong>Proveedor:</strong> {{ provider }}
-    </p>
-    <p class="receipt-card__amount">
-      <strong>Monto:</strong> {{ amount }}
-    </p>
-  </div>
-  <div class="receipt-card__footer">
-    <button class="receipt-card__btn">Ver detalles</button>
+  <div class="card-content">
+    <h3 class="card-title">{{ document.title || document.filename }}</h3>
+    <div class="card-details">
+      <p class="card-date">
+        <strong>Fecha:</strong> {{ formatDate(document.date || document.uploadedAt) }}
+      </p>
+      <p class="card-amount">
+        <strong>Monto:</strong> {{ formatAmount(document.amount) }}
+      </p>
+      <p class="card-provider" *ngIf="document.provider">
+        <strong>Proveedor:</strong> {{ document.provider }}
+      </p>
+    </div>
   </div>
 </div>

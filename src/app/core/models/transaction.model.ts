@@ -1,9 +1,17 @@
 export interface Transaction {
-  id?: string;
-  userId?: string;
-  amount: number;
+  id: string;
   date: string;
   description: string;
-  type: 'INCOME' | 'EXPENSE';
-  category: string;
+  category: 'Revenue' | 'Expenses' | 'Payroll';
+  amount: number;
+  documentId?: string; // Reference to source document
+  createdAt: string;
+}
+
+export interface CreateTransactionRequest {
+  date: string;
+  description: string;
+  category: 'Revenue' | 'Expenses' | 'Payroll';
+  amount: number;
+  documentId?: string;
 }

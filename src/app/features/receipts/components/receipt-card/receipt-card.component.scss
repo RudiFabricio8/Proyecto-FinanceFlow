@@ -1,66 +1,96 @@
 .receipt-card {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 16px;
-  background: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 16px;
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
 
-  &__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 12px;
-    margin-bottom: 12px;
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
   }
+}
 
-  &__title {
+.card-icon {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  background: #f3f4f6;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  i {
+    font-size: 2rem;
+    color: #6b7280;
+  }
+}
+
+.card-content {
+  flex: 1;
+  min-width: 0; // Prevents flex item from overflowing
+}
+
+.card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.75rem 0;
+  line-height: 1.4;
+}
+
+.card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  p {
     margin: 0;
-    font-size: 16px;
-    font-weight: 600;
-    color: #333;
-  }
+    font-size: 0.875rem;
+    color: #6b7280;
+    line-height: 1.5;
 
-  &__date {
-    font-size: 12px;
-    color: #999;
-  }
-
-  &__body {
-    margin-bottom: 12px;
-
-    p {
-      margin: 8px 0;
-      font-size: 14px;
-      color: #555;
-    }
-  }
-
-  &__provider,
-  &__amount {
     strong {
-      color: #333;
-      margin-right: 8px;
+      color: #374151;
+      font-weight: 500;
     }
   }
+}
 
-  &__footer {
-    text-align: right;
+.card-date {
+  color: #6b7280;
+}
+
+.card-amount {
+  color: #059669;
+  font-weight: 500;
+  
+  strong {
+    color: #374151;
+  }
+}
+
+.card-provider {
+  color: #6b7280;
+}
+
+// Responsive adjustments
+@media (max-width: 640px) {
+  .receipt-card {
+    flex-direction: column;
   }
 
-  &__btn {
-    padding: 8px 16px;
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-    transition: background-color 0.3s;
+  .card-icon {
+    width: 48px;
+    height: 48px;
 
-    &:hover {
-      background-color: #0056b3;
+    i {
+      font-size: 1.5rem;
     }
   }
 }

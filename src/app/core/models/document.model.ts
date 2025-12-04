@@ -11,4 +11,19 @@ export interface Document {
   uploadStatus: UploadStatus;
   filePath: string;
   uploadedAt: string;
+  
+  // Enhanced metadata for card display
+  title?: string; // e.g., "Recibo de Compra - Supermercado A"
+  amount?: number; // Extracted or manually entered amount
+  provider?: string; // e.g., "Supermercado A"
+  date?: string; // Document date (may differ from uploadedAt)
+  category?: string; // e.g., "Groceries", "Utilities"
+}
+
+export interface DocumentMetadata {
+  title: string;
+  amount?: number;
+  provider?: string;
+  date?: string;
+  category?: string;
 }

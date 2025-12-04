@@ -38,4 +38,4 @@ jobs:
                 aws-region: us-east-1
 
             - name: Deploy to S3
-              run: aws s3 sync dist/accounting-dashboard/browser s3://financeflow-frontend-v1 --delete --exclude ".*"
+              run: aws s3 sync dist/financeflow/browser s3://financeflow-frontend-v1 --delete --exclude ".*"

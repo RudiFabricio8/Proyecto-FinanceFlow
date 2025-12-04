@@ -1,7 +1,7 @@
 <!-- src/app/features/dashboard/dashboard.html -->
 <div class="dashboard-container">
   <header class="dashboard-header">
-    <h1 class="dashboard-title">Panel de control</h1>
+    <h1 class="dashboard-title">Dashboard</h1>
   </header>
 
   <!-- Tarjetas de estadísticas -->
@@ -11,7 +11,52 @@
 
   <!-- Gráficas -->
   <div class="charts-grid">
-    <app-chart-placeholder title="Flujo de caja"></app-chart-placeholder>
-    <app-chart-placeholder title="Desglose de gastos"></app-chart-placeholder>
+    <app-chart-placeholder title="Cash Flow"></app-chart-placeholder>
+    <app-chart-placeholder title="Expense Breakdown"></app-chart-placeholder>
+  </div>
+
+  <!-- Recent Transactions Table -->
+  <div class="transactions-section">
+    <div class="section-header">
+      <h2>Recent Transactions</h2>
+      <button class="export-btn" (click)="exportTransactions()">
+        Export (Excel/PDF)
+      </button>
+    </div>
+
+    <div class="transactions-table-container" *ngIf="!loadingTransactions">
+      <table class="transactions-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Category</th>
+            <th class="amount-col">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let transaction of recentTransactions">
+            <td class="date-col">{{ formatDate(transaction.date) }}</td>
+            <td class="description-col">{{ transaction.description }}</td>
+            <td>
+              <span class="category-badge" [ngClass]="getCategoryClass(transaction.category)">
+                {{ transaction.category }}
+              </span>
+            </td>
+            <td class="amount-col" [ngClass]="getAmountClass(transaction.amount)">
+              {{ transaction.amount >= 0 ? '+' : '' }}${{ Math.abs(transaction.amount).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="no-transactions" *ngIf="recentTransactions.length === 0">
+        <p>No recent transactions available</p>
+      </div>
+    </div>
+
+    <div class="loading-state" *ngIf="loadingTransactions">
+      <p>Loading transactions...</p>
+    </div>
   </div>
 </div>

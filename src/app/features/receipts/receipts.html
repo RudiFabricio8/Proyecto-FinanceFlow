@@ -1,25 +1,28 @@
 <div class="receipts-container">
-
-  <div class="top-bar">
-    <h1>Recibos y Documentos</h1>
-
+  <header class="receipts-header">
+    <h1 class="receipts-title">Recibos y Documentos</h1>
+    
     <input type="file" id="fileInput" (change)="onFileSelected($event)" style="display: none">
     <button class="upload-btn" (click)="triggerFileInput()">
       <i class="bi bi-upload"></i>
       Subir Archivo
     </button>
-  </div>
+  </header>
 
-  <div class="list">
-    <div *ngIf="loading" class="loading-spinner">Cargando...</div>
+  <div class="documents-grid" *ngIf="!loading">
     <app-receipt-card
       *ngFor="let doc of documents"
-      [title]="doc.filename"
-      [date]="doc.uploadedAt | date"
-      [amount]="'N/A'"
-      [provider]="'N/A'">
+      [document]="doc">
     </app-receipt-card>
-    <div *ngIf="!loading && documents.length === 0" class="no-data">No hay documentos cargados.</div>
+    
+    <div *ngIf="documents.length === 0" class="no-documents">
+      <i class="bi bi-inbox"></i>
+      <p>No hay documentos cargados.</p>
+      <p class="no-documents-hint">Sube tu primer documento usando el botón "Subir Archivo"</p>
+    </div>
   </div>
 
+  <div *ngIf="loading" class="loading-state">
+    <p>Cargando documentos...</p>
+  </div>
 </div>

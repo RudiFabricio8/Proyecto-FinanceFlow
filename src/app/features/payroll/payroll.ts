@@ -1,6 +1,7 @@
 // src/app/features/payroll/payroll.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { PayrollFormula, PayrollCalculation, PayrollPeriod } from '../../core/models/payroll.model';
 import { PayrollService } from '../../core/services/payroll.service';
 import { FormulaCalculatorComponent } from './components/formula-calculator/formula-calculator';
@@ -12,7 +13,7 @@ import { ExportService } from '../../core/services/export';
 @Component({
   selector: 'app-payroll',
   standalone: true,
-  imports: [CommonModule, FormulaCalculatorComponent, SavedFormulasComponent, CalculationModalComponent, PayrollPeriodsTableComponent],
+  imports: [CommonModule, FormsModule, FormulaCalculatorComponent, SavedFormulasComponent, CalculationModalComponent, PayrollPeriodsTableComponent],
   templateUrl: './payroll.html',
   styleUrl: './payroll.scss'
 })
@@ -23,6 +24,24 @@ export class Payroll implements OnInit {
   periods: PayrollPeriod[] = [];
   loading = false;
   error = '';
+
+  // Modal states
+  showNewPeriodModal = false;
+  showNewFormulaModal = false;
+
+  // Form models
+  newPeriod = {
+    name: '',
+    startDate: '',
+    endDate: '',
+    notes: ''
+  };
+
+  newFormula = {
+    concept: '',
+    description: '',
+    formula: ''
+  };
 
   constructor(
     private payrollService: PayrollService,
@@ -59,7 +78,6 @@ export class Payroll implements OnInit {
   }
 
   onSaveFormula(formulaData: any): void {
-    // formulaData comes from the component, likely needs adaptation to CreateFormulaRequest
     const request = {
       concept: formulaData.concept,
       description: formulaData.description || '',
@@ -79,19 +97,13 @@ export class Payroll implements OnInit {
   }
 
   onCalculate(data: any): void {
-    // This is a local calculation simulation. 
-    // Ideally we should use payrollService.executeFormula if we had a formulaId.
-    // For now, we keep the local logic but map it to the new structure if needed, 
-    // or better, if we are creating a new calculation, we might not send it to backend yet 
-    // unless we want to persist it.
-    
     const { inputs } = data;
     const result = inputs.baseSalary + (inputs.overtimeHours * 50 * 1.5) + inputs.bonuses;
     
     const calculation: PayrollCalculation = {
       id: Date.now().toString(),
-      formulaId: '', // No formula ID for ad-hoc calculation
-      periodId: '', // No period assigned yet
+      formulaId: '',
+      periodId: '',
       inputs,
       result,
       executedAt: new Date().toISOString()
@@ -122,5 +134,95 @@ export class Payroll implements OnInit {
       'Fin': p.endDate
     }));
     this.exportService.exportToExcel(data, 'Periodos_Nomina');
+  }
+
+  // New Period Modal Methods
+  openNewPeriodModal(): void {
+    this.showNewPeriodModal = true;
+    this.resetPeriodForm();
+  }
+
+  closeNewPeriodModal(): void {
+    this.showNewPeriodModal = false;
+  }
+
+  resetPeriodForm(): void {
+    this.newPeriod = {
+      name: '',
+      startDate: '',
+      endDate: '',
+      notes: ''
+    };
+  }
+
+  createPeriod(): void {
+    if (!this.newPeriod.name || !this.newPeriod.startDate || !this.newPeriod.endDate) {
+      alert('Por favor complete todos los campos requeridos');
+      return;
+    }
+
+    // Backend expects 'period' not 'name'
+    const periodData = {
+      period: this.newPeriod.name,
+      startDate: this.newPeriod.startDate,
+      endDate: this.newPeriod.endDate
+    };
+
+    this.payrollService.createPeriod(periodData).subscribe({
+      next: (period) => {
+        console.log('Período creado:', period);
+        this.periods.push(period);
+        this.closeNewPeriodModal();
+        alert('Período de nómina creado exitosamente');
+      },
+      error: (err) => {
+        console.error('Error creating period', err);
+        alert('Error al crear el período: ' + (err.error?.message || 'Error desconocido'));
+      }
+    });
+  }
+
+  // New Formula Modal Methods
+  openNewFormulaModal(): void {
+    this.showNewFormulaModal = true;
+    this.resetFormulaForm();
+  }
+
+  closeNewFormulaModal(): void {
+    this.showNewFormulaModal = false;
+  }
+
+  resetFormulaForm(): void {
+    this.newFormula = {
+      concept: '',
+      description: '',
+      formula: ''
+    };
+  }
+
+  createFormula(): void {
+    if (!this.newFormula.concept || !this.newFormula.formula) {
+      alert('Por favor complete el concepto y la fórmula');
+      return;
+    }
+
+    const formulaData = {
+      concept: this.newFormula.concept,
+      description: this.newFormula.description,
+      formula: this.newFormula.formula
+    };
+
+    this.payrollService.createFormula(formulaData).subscribe({
+      next: (formula) => {
+        console.log('Fórmula creada:', formula);
+        this.formulas.push(formula);
+        this.closeNewFormulaModal();
+        alert('Fórmula creada exitosamente');
+      },
+      error: (err) => {
+        console.error('Error creating formula', err);
+        alert('Error al crear la fórmula: ' + (err.error?.message || 'Error desconocido'));
+      }
+    });
   }
 }

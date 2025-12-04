@@ -43,3 +43,149 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+// Recent Transactions Section
+.transactions-section {
+  margin-top: 3rem;
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+  }
+}
+
+.export-btn {
+  padding: 0.5rem 1rem;
+  background: #194007;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #0f2804;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(25, 64, 7, 0.3);
+  }
+}
+
+.transactions-table-container {
+  overflow-x: auto;
+}
+
+.transactions-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  thead {
+    background: #f9fafb;
+    border-bottom: 2px solid #e5e7eb;
+
+    th {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid #f3f4f6;
+      transition: background 0.2s;
+
+      &:hover {
+        background: #f9fafb;
+      }
+
+      td {
+        padding: 1rem;
+        font-size: 0.875rem;
+        color: #374151;
+      }
+    }
+  }
+}
+
+.date-col {
+  font-weight: 500;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.description-col {
+  font-weight: 400;
+}
+
+.category-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.category-revenue {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.category-expenses {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.category-payroll {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.amount-col {
+  text-align: right;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.amount-positive {
+  color: #059669;
+}
+
+.amount-negative {
+  color: #dc2626;
+}
+
+.no-transactions {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #9ca3af;
+
+  p {
+    font-size: 0.875rem;
+  }
+}
+
+.loading-state {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+}
