@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReceiptCardComponent } from './components/receipt-card/receipt-card';
 import { DocumentsService } from '../../core/services/documents.service';
+import { DashboardService } from '../../core/services/dashboard.service';
 import { Document as AppDocument } from '../../core/models/document.model';
 
 @Component({
@@ -16,7 +17,10 @@ export class Receipts implements OnInit {
   documents: AppDocument[] = [];
   loading = false;
 
-  constructor(private documentsService: DocumentsService) {}
+  constructor(
+    private documentsService: DocumentsService,
+    private dashboardService: DashboardService
+  ) {}
 
   ngOnInit() {
     this.loadDocuments();
@@ -40,11 +44,13 @@ export class Receipts implements OnInit {
     const file = event.target.files[0];
     if (file) {
       this.loading = true;
+      // Upload file without injecting mock metadata; real extraction will be handled by backend or dedicated logic
       this.documentsService.uploadDocument({
         file: file,
         type: 'PAYMENT_PROOF'
       }).subscribe({
-        next: () => {
+        next: (doc) => {
+          // After successful upload, reload documents. Transaction creation should be handled by backend or separate logic.
           this.loadDocuments();
         },
         error: (err) => {

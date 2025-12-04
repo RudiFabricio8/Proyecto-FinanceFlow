@@ -15,7 +15,7 @@ import { ExportService } from '../../core/services/export';
   standalone: true,
   imports: [CommonModule, FormsModule, FormulaCalculatorComponent, SavedFormulasComponent, CalculationModalComponent, PayrollPeriodsTableComponent],
   templateUrl: './payroll.html',
-  styleUrl: './payroll.scss'
+  styleUrls: ['./payroll.scss']
 })
 export class Payroll implements OnInit {
   formulas: PayrollFormula[] = [];

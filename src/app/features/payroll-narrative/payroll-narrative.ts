@@ -4,7 +4,7 @@ import { Component } from '@angular/core';
   selector: 'app-payroll-narrative',
   standalone: true,
   templateUrl: './payroll-narrative.html',
-  styleUrl: './payroll-narrative.scss',
+  styleUrls: ['./payroll-narrative.scss'],
 })
 export class PayrollNarrativeComponent {}
 

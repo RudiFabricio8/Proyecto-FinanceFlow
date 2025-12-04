@@ -7,19 +7,19 @@ import { Transaction } from '../../../../core/models/transaction.model';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './transactions-table.html',
-  styleUrl: './transactions-table.scss'
+  styleUrls: ['./transactions-table.scss']
 })
 export class TransactionsTableComponent {
   @Input() transactions: Transaction[] = [];
   @Output() exportClick = new EventEmitter<void>();
 
-  formatAmount(amount: number, type: string): string {
+  formatAmount(amount: number, type?: string): string {
     const isPositive = type === 'INCOME';
     const sign = isPositive ? '+' : '-';
-    return `${sign}$${amount.toFixed(2)}`;
+    return `${sign}$${Math.abs(amount).toFixed(2)}`;
   }
 
-  isPositive(type: string): boolean {
+  isPositive(type?: string): boolean {
     return type === 'INCOME';
   }
 

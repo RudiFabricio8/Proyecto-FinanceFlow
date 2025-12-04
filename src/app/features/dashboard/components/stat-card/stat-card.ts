@@ -7,7 +7,7 @@ import { StatCard } from '../../../../core/models/stat-card.model';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './stat-card.html',
-  styleUrl: './stat-card.scss'
+  styleUrls: ['./stat-card.scss']
 })
 export class StatCardComponent {
   @Input() card!: StatCard;

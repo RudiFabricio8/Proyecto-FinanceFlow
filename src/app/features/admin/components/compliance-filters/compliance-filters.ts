@@ -8,7 +8,7 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './compliance-filters.html',
-  styleUrl: './compliance-filters.scss'
+  styleUrls: ['./compliance-filters.scss']
 })
 export class ComplianceFiltersComponent {
   @Output() filter = new EventEmitter<string>();

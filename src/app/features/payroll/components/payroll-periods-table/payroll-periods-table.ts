@@ -8,7 +8,7 @@ import { PayrollPeriod } from '../../../../core/models/payroll.model';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './payroll-periods-table.html',
-  styleUrl: './payroll-periods-table.scss'
+  styleUrls: ['./payroll-periods-table.scss']
 })
 export class PayrollPeriodsTableComponent {
   @Input() periods: PayrollPeriod[] = [];

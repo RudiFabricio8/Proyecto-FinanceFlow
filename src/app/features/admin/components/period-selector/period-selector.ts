@@ -9,7 +9,7 @@ import { PeriodItemComponent } from '../period-item/period-item';
   standalone: true,
   imports: [CommonModule, PeriodItemComponent],
   templateUrl: './period-selector.html',
-  styleUrl: './period-selector.scss'
+  styleUrls: ['./period-selector.scss']
 })
 export class PeriodSelectorComponent {
   @Input() periods: PayrollPeriod[] = [];

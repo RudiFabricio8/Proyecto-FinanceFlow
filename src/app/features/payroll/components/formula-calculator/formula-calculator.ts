@@ -8,7 +8,7 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './formula-calculator.html',
-  styleUrl: './formula-calculator.scss'
+  styleUrls: ['./formula-calculator.scss']
 })
 export class FormulaCalculatorComponent {
   @Output() saveFormula = new EventEmitter<any>();

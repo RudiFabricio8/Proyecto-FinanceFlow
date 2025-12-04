@@ -10,7 +10,7 @@ import { ChartPlaceholderComponent } from './components/chart-placeholder/chart-
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.html',
-  styleUrl: './dashboard.scss',
+  styleUrls: ['./dashboard.scss'],
   standalone: true,
   imports: [
     CommonModule,
@@ -30,6 +30,11 @@ export class Dashboard implements OnInit {
   ngOnInit(): void {
     this.loadDashboardSummary();
     this.loadRecentTransactions();
+  }
+
+  formatSignedAmount(amount: number): string {
+    const sign = amount >= 0 ? '+' : '-';
+    return `${sign}$${Math.abs(amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
   }
 
   loadDashboardSummary(): void {

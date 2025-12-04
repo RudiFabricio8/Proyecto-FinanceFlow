@@ -8,7 +8,7 @@ import { DailyPayrollRecord, ComplianceStatus } from '../../../../core/models/pa
   standalone: true,
   imports: [CommonModule],
   templateUrl: './compliance-row.html',
-  styleUrl: './compliance-row.scss'
+  styleUrls: ['./compliance-row.scss']
 })
 export class ComplianceRowComponent {
   @Input() record!: DailyPayrollRecord;

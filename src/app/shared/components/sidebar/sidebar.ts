@@ -9,7 +9,7 @@ import { MenuItem } from '../../../core/models/menu-item.model';
   standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './sidebar.html',
-  styleUrl: './sidebar.scss'
+  styleUrls: ['./sidebar.scss']
 })
 export class Sidebar {
   @Output() sidebarHover = new EventEmitter<boolean>();

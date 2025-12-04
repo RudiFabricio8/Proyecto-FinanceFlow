@@ -32,53 +32,9 @@ export class DocumentsService {
   }
 
   listDocuments(periodId?: string): Observable<Document[]> {
-    // Return mock documents with metadata for demonstration
-    const mockDocuments: Document[] = [
-      {
-        id: '1',
-        organizationId: 'org-1',
-        filename: 'recibo_supermercado.pdf',
-        type: 'PAYMENT_PROOF',
-        uploadStatus: 'UPLOADED',
-        filePath: '/uploads/recibo_supermercado.pdf',
-        uploadedAt: '2024-07-26T10:30:00Z',
-        title: 'Recibo de Compra - Supermercado A',
-        amount: 125.50,
-        provider: 'Supermercado A',
-        date: '2024-07-26',
-        category: 'Groceries'
-      },
-      {
-        id: '2',
-        organizationId: 'org-1',
-        filename: 'factura_electricidad.pdf',
-        type: 'PAYMENT_PROOF',
-        uploadStatus: 'UPLOADED',
-        filePath: '/uploads/factura_electricidad.pdf',
-        uploadedAt: '2024-07-20T14:15:00Z',
-        title: 'Factura de Servicios - Electricidad',
-        amount: 89.75,
-        provider: 'Empresa Eléctrica XYZ',
-        date: '2024-07-20',
-        category: 'Utilities'
-      },
-      {
-        id: '3',
-        organizationId: 'org-1',
-        filename: 'recibo_restaurante.pdf',
-        type: 'PAYMENT_PROOF',
-        uploadStatus: 'UPLOADED',
-        filePath: '/uploads/recibo_restaurante.pdf',
-        uploadedAt: '2024-07-15T19:45:00Z',
-        title: 'Recibo de Caja - Restaurante El Sabor',
-        amount: 45.00,
-        provider: 'Restaurante El Sabor',
-        date: '2024-07-15',
-        category: 'Meals'
-      }
-    ];
-
-    return of(mockDocuments);
+    // No default mock documents in views: return empty list.
+    // TODO: Implement real API call to fetch documents (optionally filtered by periodId).
+    return of([] as Document[]);
   }
 
   downloadDocument(documentId: string): Observable<Blob> {

@@ -21,41 +21,8 @@ export class DashboardService {
   private apiUrl = `${environment.apiUrl}/dashboard`;
   private transactionsUrl = `${environment.apiUrl}/transactions`;
 
-  // In-memory storage for transactions (simulating backend persistence)
-  private mockTransactions: Transaction[] = [
-    {
-      id: '1',
-      date: '2024-07-26',
-      description: 'Invoice #12345 Payment',
-      category: 'Revenue',
-      amount: 5000.00,
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: '2',
-      date: '2024-07-25',
-      description: 'Office Supplies',
-      category: 'Expenses',
-      amount: -150.25,
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: '3',
-      date: '2024-07-24',
-      description: 'Payroll - July',
-      category: 'Payroll',
-      amount: -15000.00,
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: '4',
-      date: '2024-07-23',
-      description: 'Software Subscription',
-      category: 'Expenses',
-      amount: -99.00,
-      createdAt: new Date().toISOString()
-    }
-  ];
+  // No in-memory mock transactions: views should render design-only until real data is provided.
+  // TODO: Replace with real API-backed storage or implement development fixtures behind a feature flag.
 
   constructor(private http: HttpClient) {}
 
@@ -90,8 +57,9 @@ export class DashboardService {
   }
 
   getRecentTransactions(limit: number = 10): Observable<Transaction[]> {
-    // Return mock transactions from in-memory storage
-    return of([...this.mockTransactions].slice(0, limit));
+    // Return empty transactions list by default so the UI displays layout only.
+    // TODO: Implement API call to fetch recent transactions.
+    return of([] as Transaction[]);
   }
 
   createTransaction(request: CreateTransactionRequest): Observable<Transaction> {
@@ -101,9 +69,8 @@ export class DashboardService {
       createdAt: new Date().toISOString()
     };
 
-    // Add to in-memory storage
-    this.mockTransactions.unshift(newTransaction);
-
+    // NOTE: This returns the created transaction but does not persist locally.
+    // TODO: Implement persistence on backend and return the persisted resource.
     return of(newTransaction);
   }
 

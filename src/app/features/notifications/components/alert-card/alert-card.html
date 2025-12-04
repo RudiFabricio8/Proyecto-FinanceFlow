@@ -2,17 +2,20 @@
 <div class="alert-card" [ngClass]="getBorderClass()">
   <div class="alert-header">
     <p class="alert-title" [ngClass]="getTitleClass()">{{ alert.title }}</p>
-    <span class="alert-timestamp">{{ alert.timestamp }}</span>
+    <span class="alert-timestamp">{{ alert.createdAt | date:'short' }}</span>
   </div>
-  
+
   <p class="alert-message">{{ alert.message }}</p>
-  
+
   <div class="alert-actions">
     <button class="btn-dismiss" (click)="onDismiss()">
       Descartar
     </button>
-    <button class="btn-action" (click)="onAction()">
-      {{ alert.primaryActionLabel }}
+    <button 
+      class="btn-action" 
+      *ngIf="alert.actions && alert.actions.length"
+      (click)="onAction(alert.actions[alert.actions.length - 1])">
+      {{ getPrimaryActionLabel() }}
     </button>
   </div>
 </div>

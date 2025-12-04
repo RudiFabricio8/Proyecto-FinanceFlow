@@ -8,7 +8,7 @@ import { PayrollFormula } from '../../../../core/models/payroll.model';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './saved-formulas.html',
-  styleUrl: './saved-formulas.scss'
+  styleUrls: ['./saved-formulas.scss']
 })
 export class SavedFormulasComponent {
   @Input() formulas: PayrollFormula[] = [];

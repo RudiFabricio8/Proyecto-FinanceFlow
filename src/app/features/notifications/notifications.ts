@@ -10,7 +10,7 @@ import { NotificationsService } from '../../core/services/notifications.service'
   standalone: true,
   imports: [CommonModule],
   templateUrl: './notifications.html',
-  styleUrl: './notifications.scss'
+  styleUrls: ['./notifications.scss']
 })
 export class Notifications implements OnInit {
   notifications: Notification[] = [];

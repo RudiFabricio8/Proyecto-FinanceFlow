@@ -10,7 +10,7 @@ import { ComplianceFiltersComponent } from '../compliance-filters/compliance-fil
   standalone: true,
   imports: [CommonModule, ComplianceRowComponent, ComplianceFiltersComponent],
   templateUrl: './compliance-table.html',
-  styleUrl: './compliance-table.scss'
+  styleUrls: ['./compliance-table.scss']
 })
 export class ComplianceTableComponent implements OnInit, OnChanges {
   @Input() records: DailyPayrollRecord[] = [];

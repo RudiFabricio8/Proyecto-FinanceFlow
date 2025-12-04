@@ -8,7 +8,7 @@ import { PayrollPeriod } from '../../../../core/models/payroll-period.model';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './period-item.html',
-  styleUrl: './period-item.scss'
+  styleUrls: ['./period-item.scss']
 })
 export class PeriodItemComponent {
   @Input() period!: PayrollPeriod;

@@ -8,7 +8,7 @@ import { AnalyticsChapter } from '../../../../core/models/analytics.model';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './chapter-accordion.html',
-  styleUrl: './chapter-accordion.scss'
+  styleUrls: ['./chapter-accordion.scss']
 })
 export class ChapterAccordion {
   @Input() chapter!: AnalyticsChapter;

@@ -19,7 +19,7 @@ interface CompliancePeriod {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './admin.html',
-  styleUrl: './admin.scss'
+  styleUrls: ['./admin.scss']
 })
 export class Admin {
   periods: CompliancePeriod[] = [];

@@ -5,7 +5,7 @@ import { Component, Input } from '@angular/core';
   standalone: true,
   imports: [],
   templateUrl: './chart-placeholder.html',
-  styleUrl: './chart-placeholder.scss'
+  styleUrls: ['./chart-placeholder.scss']
 })
 export class ChartPlaceholderComponent {
   @Input() title: string = '';

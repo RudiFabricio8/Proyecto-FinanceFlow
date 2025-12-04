@@ -10,17 +10,24 @@ import { ChapterAccordion } from './components/chapter-accordion/chapter-accordi
   standalone: true,
   imports: [CommonModule, ChapterAccordion],
   templateUrl: './analytics.html',
-  styleUrl: './analytics.scss'
+  styleUrls: ['./analytics.scss']
 })
 export class Analytics implements OnInit {
   chapters: AnalyticsChapter[] = [];
-  overview: AnalyticsOverview | null = null;
+  // Initialize overview with zeros so the UI shows 0 values until real data arrives
+  overview: AnalyticsOverview = {
+    totalPayrollCost: 0,
+    employeeCount: 0,
+    turnoverRate: 0,
+    averageSalary: 0
+  };
   loading = true;
   error = '';
 
   constructor(private analyticsService: AnalyticsService) {}
 
   ngOnInit(): void {
+    // Restore default chapters for UI structure; data values start at 0.
     this.initChapters();
     this.loadData();
   }

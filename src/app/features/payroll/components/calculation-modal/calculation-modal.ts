@@ -8,7 +8,7 @@ import { PayrollCalculation } from '../../../../core/models/payroll.model';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './calculation-modal.html',
-  styleUrl: './calculation-modal.scss'
+  styleUrls: ['./calculation-modal.scss']
 })
 export class CalculationModalComponent {
   @Input() calculation: PayrollCalculation | null = null;
